@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-
 import javax.swing.*;
 
 public class LoginPageGUI implements ActionListener{
@@ -22,7 +21,7 @@ public class LoginPageGUI implements ActionListener{
 		
 		 /* Create and set up the frame */
 		/* Create and set up the frame */
-		 frame = new JFrame("Login Page");
+		 frame = new JFrame("Splitwise - Login Page");
 		 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		 /* Create a content pane */
 		 contentPane = new JPanel();
@@ -39,6 +38,8 @@ public class LoginPageGUI implements ActionListener{
 		 contentPane.add(passwordPrompt);
 		 
 		 password = new JTextField("password");
+		 password.addActionListener(this);
+		 password.setActionCommand("Submit");
 		 contentPane.add(password);
 		 
 		 submitButton = new JButton("Submit");
@@ -73,7 +74,10 @@ public class LoginPageGUI implements ActionListener{
 				groups.runGUI();
 				frame.dispose();
 			} else {
-				System.out.println("Wrong username or password");
+				JLabel displayError = new JLabel("Wrong Username or Password");
+				contentPane.add(displayError);
+				frame.setContentPane(contentPane);
+				frame.pack();
 			}
 		} else {
 			LoginOrRegister loginorRegisterGUI = new LoginOrRegister();

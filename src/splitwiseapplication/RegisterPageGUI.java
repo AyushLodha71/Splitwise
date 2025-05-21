@@ -19,7 +19,7 @@ public class RegisterPageGUI implements ActionListener{
 	public RegisterPageGUI() {
 		
 		 /* Create and set up the frame */
-		 frame = new JFrame("Login Page");
+		 frame = new JFrame("Splitwise - Register Page");
 		 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		 /* Create a content pane */
 		 contentPane = new JPanel();
@@ -36,6 +36,8 @@ public class RegisterPageGUI implements ActionListener{
 		 contentPane.add(passwordPrompt);
 		 
 		 password = new JTextField("password");
+		 password.addActionListener(this);
+		 password.setActionCommand("Submit");
 		 contentPane.add(password);
 		 
 		 submitButton = new JButton("Submit");
@@ -64,7 +66,8 @@ public class RegisterPageGUI implements ActionListener{
 			String pwd = password.getText();
 			if (exists(usrname) == false) {
 				AddNewUser(usrname,pwd);
-				Groups.runGUI();
+				Groups groups = new Groups(usrname);
+				groups.runGUI();
 				frame.dispose();
 			} else {
 				System.out.println("Username already taken");

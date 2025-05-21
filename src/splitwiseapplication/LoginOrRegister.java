@@ -2,7 +2,6 @@ package splitwiseapplication;
 
 import java.awt.GridLayout;
 import java.awt.event.*;
-
 import javax.swing.*;
 
 public class LoginOrRegister implements ActionListener{
@@ -15,7 +14,7 @@ public class LoginOrRegister implements ActionListener{
 	public LoginOrRegister() {
 		
 		 /* Create and set up the frame */
-		 frame = new JFrame("Login Or Register");
+		 frame = new JFrame("Splitwise - Login Or Register");
 		 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		 /* Create a content pane */
 		 contentPane = new JPanel();

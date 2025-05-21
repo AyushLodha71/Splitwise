@@ -18,11 +18,12 @@ public class Searches{
 		 int mid = (start + end) / 2;
 		 if (goal.compareTo(items.get(mid)) == 0) {
 			 return(mid);
-		 } else if (goal.compareTo(items.get(mid)) > 0) {
+		 } else if (goal.compareTo(items.get(mid)) < 0) {
 			 return(binarySearch(items, start, mid-1, goal));
 		 } else {
 			 return(binarySearch(items, mid+1, end, goal));
 	 	}
 	 	}
 	 }
+	
 }

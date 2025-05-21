@@ -8,47 +8,38 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-
 import javax.swing.*;
 
-public class Groups implements ActionListener{		
+public class Groups implements ActionListener{
+	
 	static JFrame frame;
 	JPanel contentPane;
-	JLabel enterPrompt,joinPrompt, createPrompt;
+	JLabel optionsPrompt;
 	JComboBox options;
-	JTextField join, create;
 	ArrayList<String> groups = new ArrayList<String>();
+	String uname;
 	
 	public Groups(String username) {
 		
+		 uname = username;
 		 /* Create and set up the frame */
-		 frame = new JFrame("Login Or Register");
+		 frame = new JFrame("Splitwise - Groups");
 		 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		 /* Create a content pane */
 		 contentPane = new JPanel();
 		 contentPane.setLayout(new GridLayout(0, 2, 10, 5));
 		 contentPane.setBorder(BorderFactory.createEmptyBorder(20,50,20,50));
 		 /* Create and add label */
-		 enterPrompt = new JLabel("Choose a group to enter");
-		 contentPane.add(enterPrompt);
+		 optionsPrompt = new JLabel("Choose an option to proceed");
+		 contentPane.add(optionsPrompt);
 		 options = new JComboBox();
-		 groups = Read(username);
-		 groups.add("None");
-		 
-		 for (int i = 0; i < groups.size(); i++) {
-			 options.addItem(groups.get(i));
-		 }
-		 
+		 options.addItem("Select Item");
+		 options.addItem("Enter Group");
+		 options.addItem("Join Group");
+		 options.addItem("Create Group");
+		 options.addItem("Log out");
 		 options.addActionListener(this);
 		 contentPane.add(options);
-		 joinPrompt = new JLabel("Enter code to join a group");
-		 contentPane.add(joinPrompt);
-		 join = new JTextField("Group Code");
-		 contentPane.add(join);
-		 createPrompt = new JLabel("Enter the name of group to make a new one");
-		 contentPane.add(createPrompt);
-		 create = new JTextField("Group Name");
-		 contentPane.add(create);
 		 
 		 /* Add content pane to frame */
 		 frame.setContentPane(contentPane);
@@ -58,42 +49,26 @@ public class Groups implements ActionListener{
 	
 	}
 	
-	public static ArrayList<String> Read(String usrname) {
-		
-		FileReader in;
-		BufferedReader readFile;
-		String usrnme;
-		File textFile;
-		ArrayList<String> grouplist = new ArrayList<String>();
-		
-		//Creating a personal room for the username
-		textFile = new File("/Users/macbookpro/Desktop/Java/splitwiseApplication/src/splitwiseapplication/Personal_Folders/"+usrname);
-		
-		try {
-			in = new FileReader(textFile);
-			readFile = new BufferedReader(in);
-			while ((usrnme = readFile.readLine()) != null ) {
-				String[] myArray = usrnme.split(",");
-				grouplist.add(myArray[0]);
-			}
-			readFile.close();
-			in.close();
-		} catch (FileNotFoundException e) {
-			System.err.println("FileNotFoundException: "
-					+ e.getMessage());
-		} catch (IOException e) {;
-			System.err.println("IOException: " + e.getMessage());
-		}
-		
-		Sorts.mergesort(grouplist, 0, grouplist.size()-1);
-		
-		return grouplist;
-		
-	}
-	
 	public void actionPerformed(ActionEvent event) {
 		
-		String eventName = event.getActionCommand();
+		String selectedItem = (String) options.getSelectedItem();
+		
+		if (selectedItem.equals("Enter Group")) {
+			EnterGroup egroup = new EnterGroup(uname);
+			egroup.runGUI();
+			frame.dispose();
+		} else if (selectedItem.equals("Join Group")) {
+			JoinGroup jgroup = new JoinGroup(uname);
+			jgroup.runGUI();
+			frame.dispose();
+		} else if (selectedItem.equals("Create Group")) {
+			CreateGroup cgroup = new CreateGroup(uname);
+			cgroup.runGUI();
+			frame.dispose();
+		} else if (selectedItem.equals("Log out")){
+			LoginOrRegister loginorRegisterGUI = new LoginOrRegister();
+			loginorRegisterGUI.runGUI();
+		}
 		
 	}
 

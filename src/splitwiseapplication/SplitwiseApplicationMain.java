@@ -1,6 +1,5 @@
 package splitwiseapplication;
 
-import javax.swing.*;
 
 public class SplitwiseApplicationMain {
 
