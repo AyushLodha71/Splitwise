@@ -32,6 +32,8 @@ public class LoginPageGUI implements ActionListener{
 		 contentPane.add(usernamePrompt);
 		 
 		 username = new JTextField("username");
+		 username.addActionListener(this);
+		 username.setActionCommand("Submit");
 		 contentPane.add(username);
 		 
 		 passwordPrompt = new JLabel("Enter your password: ");
@@ -75,14 +77,27 @@ public class LoginPageGUI implements ActionListener{
 				frame.dispose();
 			} else {
 				JLabel displayError = new JLabel("Wrong Username or Password");
+				password.setActionCommand("Submitted");
+				submitButton.setActionCommand("Submitted");
+				username.setActionCommand("Submitted");
 				contentPane.add(displayError);
 				frame.setContentPane(contentPane);
 				frame.pack();
 			}
-		} else {
+		} else if (eventName.equals("Back")){
 			LoginOrRegister loginorRegisterGUI = new LoginOrRegister();
 			loginorRegisterGUI.runGUI();
 			frame.dispose();
+		} else if (eventName.equals("Submitted")) {
+			String usrname = username.getText();
+			String pwd = password.getText();
+			boolean loginSuccess;
+			loginSuccess = VerifyCredentials(usrname,pwd);
+			if (loginSuccess == true) {
+				Groups groups = new Groups(usrname);
+				groups.runGUI();
+				frame.dispose();
+			}
 		}
 		
 	}
@@ -94,7 +109,7 @@ public class LoginPageGUI implements ActionListener{
 		String usrnme;
 		File textFile;
 		
-		textFile = new File("/Users/macbookpro/Desktop/Java/splitwiseApplication/src/splitwiseapplication/credentials.txt");
+		textFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\credentials.txt");
 		try {
 			in = new FileReader(textFile);
 			readFile = new BufferedReader(in);

@@ -20,7 +20,7 @@ public class CreateGroup implements ActionListener{
 	JTextField createGroup;
 	JButton enterButton,backButton;
 	ArrayList<String> groups = new ArrayList<String>();
-	String uname;
+	String uname, code;
 	
 	public CreateGroup(String username) {
 		
@@ -59,64 +59,35 @@ public class CreateGroup implements ActionListener{
 		String eventName = event.getActionCommand();
 		
 		if (eventName.equals("Enter") == true) {
+			String gname = createGroup.getText();
+			MainPage mpage = new MainPage(uname,code);
+			mpage.runGUI();
 			frame.dispose();
 		} else if ((eventName.equals("Create New Group") == true)){
 			String text = createGroup.getText();
 			
-			ArrayList<String> usedCodes = exists(uname);
+			File txtFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\groups.txt");
+			ArrayList<String> usedCodes = Exists.exists(uname,txtFile);
 			
-			String code = createCode(usedCodes);
+			code = createCode(usedCodes);
 			
 			AddNewGroup(code,text);
 			
 			displayCode = new JLabel("The group code is: " + code);
 			enterButton = new JButton("Enter");
-			
 			createGroup.setActionCommand("Group Created");
+			enterButton.addActionListener(this);
+			enterButton.setActionCommand("Enter");
+			contentPane.add(displayCode);
+			contentPane.add(enterButton);
+			frame.setContentPane(contentPane);
+			frame.pack();
 			
 		} else if (eventName.equals("Back") == true) {
 			Groups groups = new Groups(uname);
 			groups.runGUI();
 			frame.dispose();
 		}
-		
-		enterButton.addActionListener(this);
-		enterButton.setActionCommand("Enter");
-		contentPane.add(displayCode);
-		contentPane.add(enterButton);
-		frame.setContentPane(contentPane);
-		frame.pack();
-		
-	}
-	
-	public static ArrayList<String> exists(String uname) {
-		
-		FileReader in;
-		BufferedReader readFile;
-		String line;
-		File textFile;
-		ArrayList<String> grouplist = new ArrayList<String>();
-		int location;
-		
-		textFile = new File("/Users/macbookpro/Desktop/Java/splitwiseApplication/src/splitwiseapplication/groups.txt");
-		
-		try {
-			in = new FileReader(textFile);
-			readFile = new BufferedReader(in);
-			while ((line = readFile.readLine()) != null ) {
-				String[] myArray = line.split(",");
-				grouplist.add(myArray[0]);
-			}
-			readFile.close();
-			in.close();
-		} catch (FileNotFoundException e) {
-			System.err.println("FileNotFoundException: "
-					+ e.getMessage());
-		} catch (IOException e) {;
-			System.err.println("IOException: " + e.getMessage());
-		}
-		
-		return grouplist;
 		
 	}
 	
@@ -143,26 +114,30 @@ public class CreateGroup implements ActionListener{
 		File textFile,newFile, userFile;
 		
 		// Adding Username and Password to  credentials.txt
-		textFile = new File("/Users/macbookpro/Desktop/Java/splitwiseApplication/src/splitwiseapplication/groups.txt");
+		textFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\groups.txt");
 		
 		UpdateFile.Update(gcode,gname,textFile);
 		
-		//Creating a personal room for the group
-		newFile = new File("/Users/macbookpro/Desktop/Java/splitwiseApplication/src/splitwiseapplication/Groups/"+gcode);
+		newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\Groups\\"+gcode);
+		CreateFile(newFile);
+		CreateFile(new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PaymentHistory\\"+gcode));
+		CreateFile(new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+gcode));
+		UpdateFile.Update(uname,newFile);
+		UpdateFile.Update(uname,"0",new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+gcode));
+		userFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\Personal_Folders\\"+uname);
+		UpdateFile.Update(gname,userFile);
+		
+	}
+
+	public void CreateFile(File newFile) {
 		
 		try {
 			 newFile.createNewFile();
 		} catch (IOException e) {
 			System.err.println("IOException: " + e.getMessage());
 		}
-	 
-		UpdateFile.Update(uname,newFile);
-		
-		userFile = new File("/Users/macbookpro/Desktop/Java/splitwiseApplication/src/splitwiseapplication/Personal_Folders/"+uname);
-		UpdateFile.Update(gname,userFile);
 		
 	}
-
 		 /**
 		 * Create and show the GUI.
 		 */

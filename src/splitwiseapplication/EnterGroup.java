@@ -20,6 +20,7 @@ public class EnterGroup implements ActionListener{
 	JButton backButton, groupEnter;
 	ArrayList<String> groups = new ArrayList<String>();
 	String uname;
+	String rcode = "";
 	
 	public EnterGroup(String username) {
 		
@@ -63,7 +64,7 @@ public class EnterGroup implements ActionListener{
 			ArrayList<String> grouplist = new ArrayList<String>();
 			
 			//Creating a personal room for the username
-			textFile = new File("/Users/macbookpro/Desktop/Java/splitwiseApplication/src/splitwiseapplication/Personal_Folders/"+usrname);
+			textFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\Personal_Folders\\"+usrname);
 			
 			try {
 				in = new FileReader(textFile);
@@ -90,25 +91,65 @@ public class EnterGroup implements ActionListener{
 	public void actionPerformed(ActionEvent event) {
 		
 		String eventName = event.getActionCommand();
+		String selectedItem = "";
 		
 		if (eventName.equals("Back") == true) {
 			Groups groups = new Groups(uname);
 			groups.runGUI();
 			frame.dispose();
 		} else if (eventName.equals("First") == true){
-			String selectedItem = (String) options.getSelectedItem();
+			selectedItem = (String) options.getSelectedItem();
+			rcode = RetrieveCode(selectedItem);
 			groupEnter = new JButton("Enter " + selectedItem + " Group");
+			groupEnter.addActionListener(this);
+			groupEnter.setActionCommand("Enter");
 			contentPane.add(groupEnter);
 			options.setActionCommand("Later");
 			frame.setContentPane(contentPane);
 			frame.pack();
 		} else if (eventName.equals("Later") == true) {
-			String selectedItem = (String) options.getSelectedItem();
+			selectedItem = (String) options.getSelectedItem();
+			rcode = RetrieveCode(selectedItem);
 			groupEnter.setText("Enter " + selectedItem + " Group");
+		} else if(eventName.equals("Enter") == true) {
+			MainPage mpage = new MainPage(uname,rcode);
+			mpage.runGUI();
+			frame.dispose();
 		}
 		
 	}
 	
+	public static String RetrieveCode(String n) {
+		
+		FileReader in;
+		BufferedReader readFile;
+		String line;
+		File textFile;
+		ArrayList<String> usrnamelst = new ArrayList<String>();
+		int location;
+		
+		textFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\groups.txt");
+		
+		try {
+			in = new FileReader(textFile);
+			readFile = new BufferedReader(in);
+			while ((line = readFile.readLine()) != null ) {
+				String[] myArray = line.split(",");
+				if (myArray[1].equals(n)) {
+					return myArray[0];
+				}
+			}
+		} catch (FileNotFoundException e) {
+			System.err.println("FileNotFoundException: "
+					+ e.getMessage());
+		} catch (IOException e) {;
+			System.err.println("IOException: " + e.getMessage());
+		}
+		
+		return (n);
+		
+	}
+
 	public static void runGUI() {
 		 
 		JFrame.setDefaultLookAndFeelDecorated(true);

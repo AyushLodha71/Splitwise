@@ -56,7 +56,7 @@ public class LoginOrRegister implements ActionListener{
 		}
 		
 	}
-
+	
 		 /**
 		 * Create and show the GUI.
 		 */

@@ -64,7 +64,8 @@ public class RegisterPageGUI implements ActionListener{
 		if (eventName == "Submit") {
 			String usrname = username.getText();
 			String pwd = password.getText();
-			if (exists(usrname) == false) {
+			File textFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\credentials.txt");
+			if (Exists.exist(usrname,textFile) == false) {
 				AddNewUser(usrname,pwd);
 				Groups groups = new Groups(usrname);
 				groups.runGUI();
@@ -79,57 +80,18 @@ public class RegisterPageGUI implements ActionListener{
 		}
 		
 	}
-	
-	public boolean exists(String uname) {
-		
-		FileReader in;
-		BufferedReader readFile;
-		String usrnme;
-		File textFile;
-		ArrayList<String> usrnamelst = new ArrayList<String>();
-		int location;
-		
-		textFile = new File("/Users/macbookpro/Desktop/Java/splitwiseApplication/src/splitwiseapplication/credentials.txt");
-		
-		try {
-			in = new FileReader(textFile);
-			readFile = new BufferedReader(in);
-			while ((usrnme = readFile.readLine()) != null ) {
-				String[] myArray = usrnme.split(",");
-				usrnamelst.add(myArray[0]);
-			}
-			readFile.close();
-			in.close();
-		} catch (FileNotFoundException e) {
-			System.err.println("FileNotFoundException: "
-					+ e.getMessage());
-		} catch (IOException e) {;
-			System.err.println("IOException: " + e.getMessage());
-		}
-		
-		Sorts.mergesort(usrnamelst, 0, usrnamelst.size()-1);
-		
-		location = Searches.binarySearch(usrnamelst, 0, usrnamelst.size()-1, uname);
-		
-		if (location == -1) {
-			return false;
-		} else {
-			return true;
-		}
-		
-	}
 
 	public void AddNewUser(String uname, String psswd) {
 		
 		File textFile,newFile;
 		
 		// Adding Username and Password to  credentials.txt
-		textFile = new File("/Users/macbookpro/Desktop/Java/splitwiseApplication/src/splitwiseapplication/credentials.txt");
+		textFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\credentials.txt");
 		
 		UpdateFile.Update(uname,psswd,textFile);
 		
 		//Creating a personal room for the username
-		newFile = new File("/Users/macbookpro/Desktop/Java/splitwiseApplication/src/splitwiseapplication/Personal_Folders/"+uname);
+		newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\Personal_Folders\\"+uname);
 		
 		try {
 			 newFile.createNewFile();

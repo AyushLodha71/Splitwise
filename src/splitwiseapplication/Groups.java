@@ -68,6 +68,7 @@ public class Groups implements ActionListener{
 		} else if (selectedItem.equals("Log out")){
 			LoginOrRegister loginorRegisterGUI = new LoginOrRegister();
 			loginorRegisterGUI.runGUI();
+			frame.dispose();
 		}
 		
 	}

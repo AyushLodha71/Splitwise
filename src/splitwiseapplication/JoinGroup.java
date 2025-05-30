@@ -58,16 +58,25 @@ public class JoinGroup implements ActionListener {
 		String eventName = event.getActionCommand();
 		
 		if (eventName.equals("Enter") == true) {
+			String code = joinCode.getText();
+			MainPage mpage = new MainPage(uname,code);
+			mpage.runGUI();
 			frame.dispose();
 		} else if ((eventName.equals("Join Group") == true)){
 			String code = joinCode.getText();
+			File groupFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\Groups\\"+code);
 			
-			if (checkExistence(code)) {
+			if (checkExistence(code) && Exists.exist(uname,groupFile)==false) {
 				AddNewUser(code,uname);
-				success = new JLabel("The group code is: " + code);
+				success = new JLabel("Success!");
 				enterButton = new JButton("Enter");
-				
 				joinCode.setActionCommand("Group Joined");
+				enterButton.addActionListener(this);
+				enterButton.setActionCommand("Enter");
+				contentPane.add(success);
+				contentPane.add(enterButton);
+				frame.setContentPane(contentPane);
+				frame.pack();
 			} else {
 				JLabel displayError = new JLabel("Wrong Code");
 				contentPane.add(displayError);
@@ -80,13 +89,6 @@ public class JoinGroup implements ActionListener {
 			frame.dispose();
 		}
 		
-		enterButton.addActionListener(this);
-		enterButton.setActionCommand("Enter");
-		contentPane.add(success);
-		contentPane.add(enterButton);
-		frame.setContentPane(contentPane);
-		frame.pack();
-		
 	}
 	
 	public static boolean checkExistence(String ucode) {
@@ -94,7 +96,7 @@ public class JoinGroup implements ActionListener {
 		FileReader in;
 		File textFile;
 		
-		textFile = new File("/Users/macbookpro/Desktop/Java/splitwiseApplication/src/splitwiseapplication/Groups/"+ucode);
+		textFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\Groups\\"+ucode);
 		
 		if (textFile.exists()) {
 			return true;
@@ -110,15 +112,17 @@ public class JoinGroup implements ActionListener {
 		
 		String gname;
 		
-		newFile = new File("/Users/macbookpro/Desktop/Java/splitwiseApplication/src/splitwiseapplication/Groups/"+code);
+		newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\Groups\\"+code);
 		
 		UpdateFile.Update(usrname,newFile);
 		
-		userFile = new File("/Users/macbookpro/Desktop/Java/splitwiseApplication/src/splitwiseapplication/Personal_Folders/"+usrname);
+		userFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\Personal_Folders\\"+usrname);
 		
 		gname = RetrieveName(code);
 		
-		UpdateFile.Update(gname,userFile);
+		UpdateFile.Update(gname,userFile); 
+		
+		UpdateFile.Update(usrname,"0",new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+code));
 		
 	}
 	
@@ -131,7 +135,7 @@ public class JoinGroup implements ActionListener {
 		ArrayList<String> usrnamelst = new ArrayList<String>();
 		int location;
 		
-		textFile = new File("/Users/macbookpro/Desktop/Java/splitwiseApplication/src/splitwiseapplication/groups.txt");
+		textFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\groups.txt");
 		
 		try {
 			in = new FileReader(textFile);
