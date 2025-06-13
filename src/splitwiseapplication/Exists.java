@@ -74,4 +74,59 @@ public class Exists {
 		
 	}
 	
+	public static ArrayList<String[]> contents(File textFile) {
+		
+		FileReader in;
+		BufferedReader readFile;
+		String line;
+		ArrayList<String[]> grouplist = new ArrayList<String[]>();
+		int location;
+		
+		try {
+			in = new FileReader(textFile);
+			readFile = new BufferedReader(in);
+			while ((line = readFile.readLine()) != null ) {
+				String[] myArray = line.split(",");
+				grouplist.add(myArray);
+			}
+			readFile.close();
+			in.close();
+		} catch (FileNotFoundException e) {
+			System.err.println("FileNotFoundException: "
+					+ e.getMessage());
+		} catch (IOException e) {;
+			System.err.println("IOException: " + e.getMessage());
+		}
+		
+		return grouplist;
+		
+	}
+
+	public static ArrayList<String> contents_STR(File textFile) {
+		
+		FileReader in;
+		BufferedReader readFile;
+		String line;
+		ArrayList<String> grouplist = new ArrayList<String>();
+		int location;
+		
+		try {
+			in = new FileReader(textFile);
+			readFile = new BufferedReader(in);
+			while ((line = readFile.readLine()) != null ) {
+				grouplist.add(line);
+			}
+			readFile.close();
+			in.close();
+		} catch (FileNotFoundException e) {
+			System.err.println("FileNotFoundException: "
+					+ e.getMessage());
+		} catch (IOException e) {;
+			System.err.println("IOException: " + e.getMessage());
+		}
+		
+		return grouplist;
+		
+	}
+	
 }

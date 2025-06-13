@@ -44,5 +44,46 @@ public class UpdateFile {
 		}
 		
 	}
+	
+	public static void Write(String val1, String val2, File txtFile) {
+		
+		FileWriter out;
+		BufferedWriter writeFile;
+		
+		try {
+			out = new FileWriter(txtFile);
+			writeFile = new BufferedWriter(out);
+			writeFile.write(val1);
+			writeFile.write(",");
+			writeFile.write(val2);
+			writeFile.newLine();
+			writeFile.close();
+			out.close();
+		} catch (IOException e) {
+			System.err.println("IOException: " + e.getMessage());
+		}
+		
+	}
 
+	public static void Update(String val1, String val2, String val3, File txtFile) {
+		
+		FileWriter out;
+		BufferedWriter writeFile;
+		
+		try {
+			out = new FileWriter(txtFile,true);
+			writeFile = new BufferedWriter(out);
+			writeFile.write(val1);
+			writeFile.write(">");
+			writeFile.write(val2);
+			writeFile.write(">");
+			writeFile.write(val3);
+			writeFile.newLine();
+			writeFile.close();
+			out.close();
+		} catch (IOException e) {
+			System.err.println("IOException: " + e.getMessage());
+		}
+		
+	}
 }
