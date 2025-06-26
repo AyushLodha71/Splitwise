@@ -123,7 +123,6 @@ public class CreateGroup implements ActionListener{
 		CreateFile(new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PaymentHistory\\"+gcode));
 		CreateFile(new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+gcode));
 		UpdateFile.Update(uname,newFile);
-		UpdateFile.Update(uname,"0",new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+gcode));
 		userFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\Personal_Folders\\"+uname);
 		UpdateFile.Update(gname,userFile);
 		

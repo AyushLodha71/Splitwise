@@ -22,6 +22,7 @@ public class AddTransaction implements ActionListener {
 	ArrayList<JTextField> chosenU = new ArrayList<JTextField>();
 	ArrayList<JTextField> chosenBP = new ArrayList<JTextField>();
 	ArrayList<Double> valuesU = new ArrayList<Double>();
+	ArrayList<Double> valuesBP = new ArrayList<Double>();
 	String amountVal = "0";
 	String reasonVal;
 	
@@ -98,7 +99,7 @@ public class AddTransaction implements ActionListener {
 				response.setText("Enter valid values");
 			} else {
 				File newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PaymentHistory\\"+code);
-				UpdateFile.Update(uname, "$" + amountVal,reasonVal,newFile);
+				UpdateFile.Update(uname, "$" + amountVal,reasonVal,"0",newFile);
 				if (options.getSelectedItem() == "All Equally"){
 					UpdatePAEqually(Integer.parseInt(amountVal));
 					response.setText("Transaction added");
@@ -118,8 +119,8 @@ public class AddTransaction implements ActionListener {
 					frame.pack();
 				} else if(options.getSelectedItem() == "Unequally") {
 					for (int i = 0; i < members.size(); i++) {
-						nameBP = new JTextField(members.get(i));
-						chosenBP.add(nameBP);
+						nameU = new JTextField(members.get(i));
+						chosenU.add(nameU);
 						contentPane.add(nameU);
 					}
 					enter = new JButton("Enter");
@@ -130,9 +131,9 @@ public class AddTransaction implements ActionListener {
 					frame.pack();
 				} else if(options.getSelectedItem() == "By Percentages") {
 					for (int i = 0; i < members.size(); i++) {
-						nameU = new JTextField(members.get(i));
-						chosenU.add(nameU);
-						contentPane.add(nameU);
+						nameBP = new JTextField(members.get(i));
+						chosenBP.add(nameBP);
+						contentPane.add(nameBP);
 					}
 					enter = new JButton("Enter");
 					enter.addActionListener(this);
@@ -157,8 +158,8 @@ public class AddTransaction implements ActionListener {
 			}
 		} else if (eventName.equals("EQS") == true) {
 			File newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+code);
-			ArrayList<String[]> PAMembers = Exists.contents(newFile);	
-			UpdatePAEqBySome(Integer.parseInt(amountVal), PAMembers, chosenEQS);
+			ArrayList<String[]> PAMembers = Exists.contents(newFile, ">");
+			UpdatePAEqBySome(Integer.parseInt(amountVal), PAMembers, members, chosenEQS);
 		}  else if(eventName.equals("U") == true) {
 			double sum = 0;
 			for (int i = 0; i < chosenU.size(); i++) {
@@ -168,18 +169,18 @@ public class AddTransaction implements ActionListener {
 	            valuesU.add(text);
 			}
 			if (Double.parseDouble(amountVal) - sum <= 0.1 && Double.parseDouble(amountVal) - sum >= -0.1) {
-				UpdatePAUnequally(Integer.parseInt(amountVal), valuesU);
+				UpdatePAUnequally(Integer.parseInt(amountVal), valuesU, members);
 			}
 		} else if(eventName.equals("BP") == true) {
 			double sum = 0;
-			for (int i = 0; i < chosenU.size(); i++) {
-				JTextField nameU = chosenU.get(i); // Get each JTextField from the list
-	            double text = Double.parseDouble(nameU.getText()); // Retrieve the text from the current text field
+			for (int i = 0; i < chosenBP.size(); i++) {
+				nameBP = chosenBP.get(i); // Get each JTextField from the list
+	            double text = Double.parseDouble(nameBP.getText()); // Retrieve the text from the current text field
 	            sum += text;
-	            valuesU.add(text);
+	            valuesBP.add(text);
 			}
 			if (100 - sum <= 0.1 && 100 - sum >= -0.1) {
-				UpdatePAByPercentages(Integer.parseInt(amountVal), valuesU);
+				UpdatePAByPercentages(Integer.parseInt(amountVal), valuesBP, members);
 			}
 		}
 		
@@ -188,29 +189,30 @@ public class AddTransaction implements ActionListener {
 	public void UpdatePAEqually (int cost) {
 		
 		File newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+code);
-		ArrayList<String[]> members = Exists.contents(newFile);
+		ArrayList<String[]> options = Exists.contents(newFile, ">");
+		
+		File txtFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\Groups\\"+code);
+		ArrayList<String> members = Exists.contents_STR(txtFile);
+		
 		double costPP = (double)cost/(double)members.size();
 		
-		if (members.get(0)[0].equals(uname)) {
-			members.get(0)[1] = Double.toString(Double.parseDouble(members.get(0)[1]) + cost - costPP);
-		} else {
-			members.get(0)[1] = Double.toString(Double.parseDouble(members.get(0)[1]) - costPP);
-		}
+		UpdateFile.Write(options.get(0)[0], options.get(0)[1], options.get(0)[2], newFile);
 		
-		UpdateFile.Write(members.get(0)[0], members.get(0)[1], newFile);
-		
-		for (int i = 1; i < members.size(); i++) {
-			if (members.get(i)[0].equals(uname)) {
-				members.get(i)[1] = Double.toString(Double.parseDouble(members.get(i)[1]) + cost - costPP);
-			} else {
-				members.get(i)[1] = Double.toString(Double.parseDouble(members.get(i)[1]) - costPP);
+		for (int i = 1; i < options.size(); i++) {
+			String[] vals = options.get(i);
+			if (containsValue(vals,uname)) {
+				if (options.get(i)[0].equals(uname)) {
+					options.get(i)[1] = Double.toString(Double.parseDouble(options.get(i)[1]) + costPP);
+				} else {
+					options.get(i)[1] = Double.toString(Double.parseDouble(options.get(i)[1]) - costPP);
+				}
 			}
-			UpdateFile.Update(members.get(i)[0], members.get(i)[1], newFile);
+			UpdateFile.Update(options.get(i)[0], options.get(i)[1], options.get(i)[2], newFile);
 		}
 		
 	}
 	
-	public void UpdatePAEqBySome (int cost, ArrayList<String[]> lst, ArrayList<Integer> selected) {
+	public void UpdatePAEqBySome (int cost, ArrayList<String[]> lst, ArrayList<String> names, ArrayList<Integer> selected) {
 		
 		File newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+code);
 		
@@ -221,77 +223,90 @@ public class AddTransaction implements ActionListener {
 		}
 		
 		double costPP = (double)cost/(double)sum;
-
-		if (lst.get(0)[0].equals(uname) && selected.get(0) == 1) {
-			lst.get(0)[1] = Double.toString(Double.parseDouble(lst.get(0)[1]) + cost - costPP);
-		} else if (lst.get(0)[0].equals(uname) && selected.get(0) == 0) {
-			lst.get(0)[1] = Double.toString(Double.parseDouble(lst.get(0)[1]) + cost);
-		} else if(selected.get(0) == 1){
-			lst.get(0)[1] = Double.toString(Double.parseDouble(lst.get(0)[1]) - costPP);
+		UpdateFile.Write(lst.get(0)[0], lst.get(0)[1], lst.get(0)[2], newFile);
+		
+		for (int i = 0; i < names.size(); i++) {
+			if (selected.get(i) == 1 && !names.get(i).equals(uname)) {
+				for (int j = 1; j < lst.size(); j++) {
+					String[] vals = lst.get(j);
+					if (containsValue(vals,uname) && containsValue(vals,names.get(i))) {
+						System.out.println(vals[0] + " " + vals[1] + " " + vals[2] + j + i);
+						if (vals[0].equals(uname)) {
+							lst.get(j)[1] = Double.toString(Double.parseDouble(lst.get(j)[1]) + costPP);
+						} else {
+							lst.get(j)[1] = Double.toString(Double.parseDouble(lst.get(j)[1]) - costPP);
+						}
+					}
+				}
+			}
 		}
 		
-		UpdateFile.Write(lst.get(0)[0], lst.get(0)[1], newFile);
+		for (int i = 1; i <lst.size(); i++) {
+			UpdateFile.Update(lst.get(i)[0], lst.get(i)[1], lst.get(i)[2], newFile);
+		}
+	}
+	
+	public void UpdatePAUnequally(int cost, ArrayList<Double> amounts, ArrayList<String> groupMembers) {
 		
-		for (int i = 1; i < lst.size(); i++) {
-			if (lst.get(i)[0].equals(uname) && selected.get(i) == 1) {
-				lst.get(i)[1] = Double.toString(Double.parseDouble(lst.get(i)[1]) + cost - costPP);
-			} else if (lst.get(i)[0].equals(uname) && selected.get(i) == 0) {
-				lst.get(i)[1] = Double.toString(Double.parseDouble(lst.get(i)[1]) + cost);
-			} else if(selected.get(i) == 1){
-				lst.get(i)[1] = Double.toString(Double.parseDouble(lst.get(i)[1]) - costPP);
+		File newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+code);
+		ArrayList<String[]> records = Exists.contents(newFile, ">");
+		int t;
+		
+		UpdateFile.Write(records.get(0)[0], records.get(0)[1], records.get(0)[2], newFile);
+		
+		for (int i = 1; i < records.size(); i++) {
+			String[] row = records.get(i);
+			if (containsValue(row,uname)) {
+				if (row[2].equals(uname)) {
+					t = groupMembers.indexOf(row[0]);
+					records.get(i)[1] = Double.toString(Double.parseDouble(records.get(i)[1]) - amounts.get(t));
+				} else {
+					t = groupMembers.indexOf(row[2]);
+					records.get(i)[1] = Double.toString(Double.parseDouble(records.get(i)[1]) + amounts.get(t));
+				}
 			}
-			UpdateFile.Update(lst.get(i)[0], lst.get(i)[1], newFile);
+			UpdateFile.Update(records.get(i)[0], records.get(i)[1], records.get(i)[2], newFile);
 		}
 		
 	}
 	
-	public void UpdatePAUnequally(int cost, ArrayList<Double> amounts) {
+	public void UpdatePAByPercentages(int cost, ArrayList<Double> percentages, ArrayList<String> groupMembers) {
 		
 		File newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+code);
-		ArrayList<String[]> members = Exists.contents(newFile);
+		ArrayList<String[]> records = Exists.contents(newFile, ">");
+		int t;
 		
-		if (members.get(0)[0].equals(uname)) {
-			members.get(0)[1] = Double.toString(Double.parseDouble(members.get(0)[1]) + cost - amounts.get(0));
-		} else {
-			members.get(0)[1] = Double.toString(Double.parseDouble(members.get(0)[1]) - amounts.get(0));
-		}
+		UpdateFile.Write(records.get(0)[0], records.get(0)[1], records.get(0)[2], newFile);
 		
-		UpdateFile.Write(members.get(0)[0], members.get(0)[1], newFile);
-		
-		for (int i = 1; i < members.size(); i++) {
-			if (members.get(i)[0].equals(uname)) {
-				members.get(i)[1] = Double.toString(Double.parseDouble(members.get(i)[1]) + cost - amounts.get(i));
-			} else {
-				members.get(i)[1] = Double.toString(Double.parseDouble(members.get(i)[1]) - amounts.get(i));
+		for (int i = 1; i < records.size(); i++) {
+			String[] row = records.get(i);
+			if (containsValue(row,uname)) {
+				if (row[2].equals(uname)) {
+					t = groupMembers.indexOf(row[0]);
+					records.get(i)[1] = Double.toString(Double.parseDouble(records.get(i)[1]) - (double)cost*(double)percentages.get(t)/100.0);
+				} else {
+					t = groupMembers.indexOf(row[2]);
+					records.get(i)[1] = Double.toString(Double.parseDouble(records.get(i)[1]) + (double)cost*(double)percentages.get(t)/100.0);
+				}
 			}
-			UpdateFile.Update(members.get(i)[0], members.get(i)[1], newFile);
+			UpdateFile.Update(records.get(i)[0], records.get(i)[1], records.get(i)[2], newFile);
 		}
+		
 		
 	}
 	
-	public void UpdatePAByPercentages(int cost, ArrayList<Double> percentages) {
-		
-		File newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+code);
-		ArrayList<String[]> members = Exists.contents(newFile);
-		
-		if (members.get(0)[0].equals(uname)) {
-			members.get(0)[1] = Double.toString(Double.parseDouble(members.get(0)[1]) + (double)cost*(1.0 - (double)percentages.get(0)/100.0));
-		} else {
-			members.get(0)[1] = Double.toString(Double.parseDouble(members.get(0)[1]) - (double)cost*(double)percentages.get(0)/100.0);
-		}
-		
-		UpdateFile.Write(members.get(0)[0], members.get(0)[1], newFile);
-		
-		for (int i = 1; i < members.size(); i++) {
-			if (members.get(i)[0].equals(uname)) {
-				members.get(i)[1] = Double.toString(Double.parseDouble(members.get(i)[1]) + (double)cost*(1.0 - (double)percentages.get(i)/100.0));
-			} else {
-				members.get(i)[1] = Double.toString(Double.parseDouble(members.get(i)[1]) - (double)cost*(double)percentages.get(i)/100.0);
-			}
-			UpdateFile.Update(members.get(i)[0], members.get(i)[1], newFile);
-		}
-		
-	}
+	public static boolean containsValue(String[] array, String targetValue) {
+        if (array == null) {
+            return false; // The array itself is null
+        }
+        for (String element : array) {
+            // Use .equals() for String comparison
+            if (element != null && element.equals(targetValue)) {
+                return true; // Found the specific value
+            }
+        }
+        return false; // Value not found
+    }
 	
 	public static void runGUI() {
 		 

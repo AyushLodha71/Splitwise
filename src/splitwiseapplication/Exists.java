@@ -74,7 +74,7 @@ public class Exists {
 		
 	}
 	
-	public static ArrayList<String[]> contents(File textFile) {
+	public static ArrayList<String[]> contents(File textFile, String indicator) {
 		
 		FileReader in;
 		BufferedReader readFile;
@@ -86,7 +86,7 @@ public class Exists {
 			in = new FileReader(textFile);
 			readFile = new BufferedReader(in);
 			while ((line = readFile.readLine()) != null ) {
-				String[] myArray = line.split(",");
+				String[] myArray = line.split(indicator);
 				grouplist.add(myArray);
 			}
 			readFile.close();

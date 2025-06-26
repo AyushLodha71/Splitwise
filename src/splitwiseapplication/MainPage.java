@@ -41,7 +41,11 @@ public class MainPage implements ActionListener{
 		if (info.size()!= 0) {
 			data = new String[info.size()];
 			for (int i = 0; i < info.size(); i++) {
-				data[i] = info.get(i)[0] + " added a payment of "+info.get(i)[1] + " for " + info.get(i)[2];
+				if (info.get(i)[3].equals("0")) {
+					data[i] = info.get(i)[0] + " added a payment of "+info.get(i)[1] + " for " + info.get(i)[2];
+				} else {
+					data[i] = info.get(i)[0] + " paid " + info.get(i)[1] + " to " + info.get(i)[2];
+				}
 			}
 		} else {
 			data = new String[1];
@@ -87,6 +91,8 @@ public class MainPage implements ActionListener{
 
 		addTransaction.addActionListener(this);
 		addTransaction.setActionCommand("addTransaction");
+		settlePayment.addActionListener(this);
+		settlePayment.setActionCommand("settlePayment");
 		
         // Add some vertical space between buttons
         buttonPanel.add(Box.createVerticalStrut(10)); // Top padding
@@ -113,9 +119,17 @@ public class MainPage implements ActionListener{
 	
 	public void actionPerformed(ActionEvent event) {
 		
-		AddTransaction atransaction = new AddTransaction(uname,gcode);
-		atransaction.runGUI();
-		frame.dispose();
+		String eventName = event.getActionCommand();
+		
+		if(eventName.equals("addTransaction")) {
+			AddTransaction atransaction = new AddTransaction(uname,gcode);
+			atransaction.runGUI();
+			frame.dispose();
+		} else if (eventName.equals("settlePayment")) {
+			SettlePayment sPayment = new SettlePayment(uname,gcode);
+			sPayment.runGUI();
+			frame.dispose();
+		}
 		
 	}
 	

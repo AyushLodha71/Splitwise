@@ -19,7 +19,7 @@ public class JoinGroup implements ActionListener {
 	JTextField joinCode;
 	JButton enterButton,backButton;
 	ArrayList<String> groups = new ArrayList<String>();
-	String uname;
+	static String uname;
 	
 	public JoinGroup(String username) {
 		
@@ -112,6 +112,8 @@ public class JoinGroup implements ActionListener {
 		
 		String gname;
 		
+		AddPerms(code);
+		
 		newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\Groups\\"+code);
 		
 		UpdateFile.Update(usrname,newFile);
@@ -122,8 +124,17 @@ public class JoinGroup implements ActionListener {
 		
 		UpdateFile.Update(gname,userFile); 
 		
-		UpdateFile.Update(usrname,"0",new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+code));
+	}
+	
+	public static void AddPerms(String gcode) {
 		
+		File newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\Groups\\"+gcode);
+		ArrayList<String> lst = new ArrayList<String>(); 
+		lst = Exists.exists(gcode, newFile);
+		
+		for (String i : lst) {
+			UpdateFile.Update(uname,"0", i, new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+gcode));
+		}
 	}
 	
 	public static String RetrieveName(String c) {
