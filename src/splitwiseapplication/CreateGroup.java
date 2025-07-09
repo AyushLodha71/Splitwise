@@ -111,7 +111,7 @@ public class CreateGroup implements ActionListener{
 	
 	public void AddNewGroup(String gcode, String gname) {
 		
-		File textFile,newFile, userFile;
+		File textFile,newFile, userFile, casFile;
 		
 		// Adding Username and Password to  credentials.txt
 		textFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\groups.txt");
@@ -119,12 +119,16 @@ public class CreateGroup implements ActionListener{
 		UpdateFile.Update(gcode,gname,textFile);
 		
 		newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\Groups\\"+gcode);
+		casFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\CheckAmountSpent\\"+gcode);
 		CreateFile(newFile);
 		CreateFile(new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PaymentHistory\\"+gcode));
 		CreateFile(new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+gcode));
-		UpdateFile.Update(uname,newFile);
+		CreateFile(casFile);
 		userFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\Personal_Folders\\"+uname);
+		UpdateFile.Update(uname,newFile);
 		UpdateFile.Update(gname,userFile);
+		UpdateFile.Update("Total","0",casFile);
+		UpdateFile.Update(uname,"0",casFile);
 		
 	}
 

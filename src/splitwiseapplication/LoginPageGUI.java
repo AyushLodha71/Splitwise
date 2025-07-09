@@ -1,5 +1,7 @@
 package splitwiseapplication;
 
+import java.awt.Dimension;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.*;
 import java.io.BufferedReader;
@@ -8,14 +10,18 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import javax.swing.*;
+import java.net.URL;
 
 public class LoginPageGUI implements ActionListener{
 	
 	static JFrame frame;
-	JPanel contentPane;
+	JPanel contentPane,passwordPane;
 	JLabel usernamePrompt, passwordPrompt;
-	JButton submitButton,backButton;
-	JTextField username, password;
+	JButton hideShowButton, submitButton, backButton;
+	JTextField username;
+	JPasswordField password;
+	char defaultEchoChar;
+	ImageIcon openEyeIcon, closedEyeIcon;
 	
 	public LoginPageGUI() {
 		
@@ -27,6 +33,10 @@ public class LoginPageGUI implements ActionListener{
 		 contentPane = new JPanel();
 		 contentPane.setLayout(new GridLayout(0, 2, 10, 5));
 		 contentPane.setBorder(BorderFactory.createEmptyBorder(20,50,20,50));
+		 
+		 passwordPane = new JPanel();
+		 passwordPane.setLayout(new GridBagLayout());
+		 
 		 /* Create and add label */
 		 usernamePrompt = new JLabel("Enter your username: ");
 		 contentPane.add(usernamePrompt);
@@ -39,10 +49,33 @@ public class LoginPageGUI implements ActionListener{
 		 passwordPrompt = new JLabel("Enter your password: ");
 		 contentPane.add(passwordPrompt);
 		 
-		 password = new JTextField("password");
+		 password = new JPasswordField(10);
 		 password.addActionListener(this);
 		 password.setActionCommand("Submit");
-		 contentPane.add(password);
+		 passwordPane.add(password);
+		 
+		 defaultEchoChar = password.getEchoChar();
+		 
+		 
+		 try {
+	            openEyeIcon = new ImageIcon(new URL("https://img.icons8.com/material/24/000000/visible.png"));
+	            closedEyeIcon = new ImageIcon(new URL("https://img.icons8.com/material/24/000000/invisible.png"));
+	        } catch (Exception e) {
+	            System.err.println("Error loading icons from URLs. Please provide local paths.");
+	            e.printStackTrace();
+	            // Fallback: create empty icons to prevent NullPointerExceptions
+	            openEyeIcon = new ImageIcon();
+	            closedEyeIcon = new ImageIcon();
+	        }
+		 
+		 hideShowButton = new JButton();
+		 hideShowButton.setIcon(openEyeIcon);
+		 hideShowButton.addActionListener(this);
+		 hideShowButton.setActionCommand("show");
+		 hideShowButton.setPreferredSize(new Dimension(openEyeIcon.getIconWidth(), openEyeIcon.getIconHeight()));
+		 passwordPane.add(hideShowButton);
+		 
+		 contentPane.add(passwordPane);
 		 
 		 submitButton = new JButton("Submit");
 		 submitButton.addActionListener(this);
@@ -66,7 +99,15 @@ public class LoginPageGUI implements ActionListener{
 		
 		String eventName = event.getActionCommand();
 		
-		if (eventName.equals("Submit")) {
+		if (eventName.equals("show")) {
+			password.setEchoChar((char) 0);
+			hideShowButton.setIcon(closedEyeIcon);
+			hideShowButton.setActionCommand("hide");
+		} else if (eventName.equals("hide")) {
+			password.setEchoChar(defaultEchoChar);
+			hideShowButton.setIcon(openEyeIcon);
+			hideShowButton.setActionCommand("show");
+		} else if (eventName.equals("Submit")) {
 			String usrname = username.getText();
 			String pwd = password.getText();
 			boolean loginSuccess;

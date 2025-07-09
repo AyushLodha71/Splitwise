@@ -100,7 +100,7 @@ public class SettlePayment implements ActionListener{
 			AmountSettled as = new AmountSettled(options.get(selectedItem), uname, gcode, info.indexOf(options.get(selectedItem)));
 			as.runGUI();
 			frame.dispose();
-		} else {
+		} else if (eventName.equals("back")){
 			MainPage mpage = new MainPage(uname,gcode);
 			mpage.runGUI();
 			frame.dispose();

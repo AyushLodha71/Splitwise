@@ -108,7 +108,7 @@ public class JoinGroup implements ActionListener {
 
 	public static void AddNewUser(String code, String usrname) {
 		
-		File userFile, newFile;
+		File userFile, newFile, casFile;
 		
 		String gname;
 		
@@ -123,6 +123,12 @@ public class JoinGroup implements ActionListener {
 		gname = RetrieveName(code);
 		
 		UpdateFile.Update(gname,userFile); 
+		
+		casFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\CheckAmountSpent\\"+code);
+
+		
+		
+		UpdateFile.Update(uname,"0",casFile);
 		
 	}
 	

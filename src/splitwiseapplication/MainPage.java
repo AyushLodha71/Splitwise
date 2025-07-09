@@ -22,7 +22,7 @@ public class MainPage implements ActionListener{
 	JScrollPane scrollPane;
 	String uname,gcode;
 	ArrayList<String[]> info;
-	JButton addTransaction,settlePayment,checkDue,back,exitGroup;
+	JButton addTransaction,settlePayment,checkBalances,checkAmountSpent,back,exitGroup;
 	
 	public MainPage(String username, String code) {
 	
@@ -71,10 +71,14 @@ public class MainPage implements ActionListener{
 		settlePayment.setMinimumSize(new Dimension(150,30));
 		settlePayment.setMaximumSize(new Dimension(150,30));
 		settlePayment.setPreferredSize(new Dimension(150,30));
-		checkDue = new JButton("Check Due Amount");
-		checkDue.setMinimumSize(new Dimension(150,30));
-		checkDue.setMaximumSize(new Dimension(150,30));
-		checkDue.setPreferredSize(new Dimension(150,30));
+		checkBalances = new JButton("Check Balances");
+		checkBalances.setMinimumSize(new Dimension(150,30));
+		checkBalances.setMaximumSize(new Dimension(150,30));
+		checkBalances.setPreferredSize(new Dimension(150,30));
+		checkAmountSpent = new JButton("Check Amount Spent");
+		checkAmountSpent.setMinimumSize(new Dimension(150,30));
+		checkAmountSpent.setMaximumSize(new Dimension(150,30));
+		checkAmountSpent.setPreferredSize(new Dimension(150,30));
 		back = new JButton("Back");
 		back.setMinimumSize(new Dimension(150,30));
 		back.setMaximumSize(new Dimension(150,30));
@@ -85,7 +89,8 @@ public class MainPage implements ActionListener{
 		exitGroup.setPreferredSize(new Dimension(150,30));
 		addTransaction.setAlignmentX(Component.CENTER_ALIGNMENT);
 		settlePayment.setAlignmentX(Component.CENTER_ALIGNMENT);
-		checkDue.setAlignmentX(Component.CENTER_ALIGNMENT);
+		checkBalances.setAlignmentX(Component.CENTER_ALIGNMENT);
+		checkAmountSpent.setAlignmentX(Component.CENTER_ALIGNMENT);
 		back.setAlignmentX(Component.CENTER_ALIGNMENT);
 		exitGroup.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -93,6 +98,11 @@ public class MainPage implements ActionListener{
 		addTransaction.setActionCommand("addTransaction");
 		settlePayment.addActionListener(this);
 		settlePayment.setActionCommand("settlePayment");
+		checkBalances.addActionListener(this);
+		checkBalances.setActionCommand("checkBalances");
+		checkAmountSpent.addActionListener(this);
+		checkAmountSpent.setActionCommand("checkAmountSpent");
+		
 		
         // Add some vertical space between buttons
         buttonPanel.add(Box.createVerticalStrut(10)); // Top padding
@@ -100,7 +110,9 @@ public class MainPage implements ActionListener{
         buttonPanel.add(Box.createVerticalStrut(10)); // Space between buttons
         buttonPanel.add(settlePayment);
         buttonPanel.add(Box.createVerticalStrut(10));
-        buttonPanel.add(checkDue);
+        buttonPanel.add(checkBalances);
+        buttonPanel.add(Box.createVerticalStrut(10));
+        buttonPanel.add(checkAmountSpent);
         buttonPanel.add(Box.createVerticalStrut(10));
         buttonPanel.add(back);
         buttonPanel.add(Box.createVerticalStrut(10));
@@ -128,6 +140,14 @@ public class MainPage implements ActionListener{
 		} else if (eventName.equals("settlePayment")) {
 			SettlePayment sPayment = new SettlePayment(uname,gcode);
 			sPayment.runGUI();
+			frame.dispose();
+		} else if (eventName.equals("checkBalances")) {
+			CheckBalances cBalances = new CheckBalances(uname,gcode);
+			cBalances.runGUI();
+			frame.dispose();
+		} else if (eventName.equals("checkAmountSpent")) {
+			CheckAmountSpent cAmtSpent = new CheckAmountSpent(uname,gcode);
+			cAmtSpent.runGUI();
 			frame.dispose();
 		}
 		

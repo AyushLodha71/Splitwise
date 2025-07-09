@@ -162,6 +162,7 @@ public class AddTransaction implements ActionListener {
 			UpdatePAEqBySome(Integer.parseInt(amountVal), PAMembers, members, chosenEQS);
 		}  else if(eventName.equals("U") == true) {
 			double sum = 0;
+			valuesU.clear();
 			for (int i = 0; i < chosenU.size(); i++) {
 				JTextField nameU = chosenU.get(i); // Get each JTextField from the list
 	            double text = Double.parseDouble(nameU.getText()); // Retrieve the text from the current text field
@@ -173,6 +174,7 @@ public class AddTransaction implements ActionListener {
 			}
 		} else if(eventName.equals("BP") == true) {
 			double sum = 0;
+			valuesBP.clear();
 			for (int i = 0; i < chosenBP.size(); i++) {
 				nameBP = chosenBP.get(i); // Get each JTextField from the list
 	            double text = Double.parseDouble(nameBP.getText()); // Retrieve the text from the current text field
@@ -188,33 +190,43 @@ public class AddTransaction implements ActionListener {
 	
 	public void UpdatePAEqually (int cost) {
 		
-		File newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+code);
-		ArrayList<String[]> options = Exists.contents(newFile, ">");
+		File newFilePA = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+code);
+		ArrayList<String[]> optionsPA = Exists.contents(newFilePA, ">");
+		File newFileCAS = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\CheckAmountSpent\\"+code);
+		ArrayList<String[]> optionsCAS = Exists.contents(newFileCAS, ",");
 		
 		File txtFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\Groups\\"+code);
 		ArrayList<String> members = Exists.contents_STR(txtFile);
 		
 		double costPP = (double)cost/(double)members.size();
 		
-		UpdateFile.Write(options.get(0)[0], options.get(0)[1], options.get(0)[2], newFile);
+		UpdateFile.Write(optionsPA.get(0)[0], optionsPA.get(0)[1], optionsPA.get(0)[2], newFilePA);
+		optionsCAS.get(0)[1] = Double.toString(Double.parseDouble(optionsCAS.get(0)[1]) + cost);
+		UpdateFile.Write(optionsCAS.get(0)[0], optionsCAS.get(0)[1], newFileCAS);
 		
-		for (int i = 1; i < options.size(); i++) {
-			String[] vals = options.get(i);
+		for (int i = 1; i < optionsPA.size(); i++) {
+			String[] vals = optionsPA.get(i);
 			if (containsValue(vals,uname)) {
-				if (options.get(i)[0].equals(uname)) {
-					options.get(i)[1] = Double.toString(Double.parseDouble(options.get(i)[1]) + costPP);
+				if (optionsPA.get(i)[0].equals(uname)) {
+					optionsPA.get(i)[1] = Double.toString(Double.parseDouble(optionsPA.get(i)[1]) + costPP);
 				} else {
-					options.get(i)[1] = Double.toString(Double.parseDouble(options.get(i)[1]) - costPP);
+					optionsPA.get(i)[1] = Double.toString(Double.parseDouble(optionsPA.get(i)[1]) - costPP);
 				}
 			}
-			UpdateFile.Update(options.get(i)[0], options.get(i)[1], options.get(i)[2], newFile);
+			UpdateFile.Update(optionsPA.get(i)[0], optionsPA.get(i)[1], optionsPA.get(i)[2], newFilePA);
+		}
+		for (int i = 1; i < optionsCAS.size(); i++) {
+			optionsCAS.get(i)[1] = Double.toString(Double.parseDouble(optionsCAS.get(i)[1]) + costPP);
+			UpdateFile.Update(optionsCAS.get(i)[0], optionsCAS.get(i)[1], newFileCAS);
 		}
 		
 	}
 	
 	public void UpdatePAEqBySome (int cost, ArrayList<String[]> lst, ArrayList<String> names, ArrayList<Integer> selected) {
 		
-		File newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+code);
+		File newFilePA = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+code);
+		File newFileCAS = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\CheckAmountSpent\\"+code);
+		ArrayList<String[]> optionsCAS = Exists.contents(newFileCAS, ",");
 		
 		int sum = 0;
 		
@@ -223,17 +235,18 @@ public class AddTransaction implements ActionListener {
 		}
 		
 		double costPP = (double)cost/(double)sum;
-		UpdateFile.Write(lst.get(0)[0], lst.get(0)[1], lst.get(0)[2], newFile);
+		UpdateFile.Write(lst.get(0)[0], lst.get(0)[1], lst.get(0)[2], newFilePA);
+		optionsCAS.get(0)[1] = Double.toString(Double.parseDouble(optionsCAS.get(0)[1]) + cost);
+		UpdateFile.Write(optionsCAS.get(0)[0], optionsCAS.get(0)[1], newFileCAS);
 		
 		for (int i = 0; i < names.size(); i++) {
 			if (selected.get(i) == 1 && !names.get(i).equals(uname)) {
 				for (int j = 1; j < lst.size(); j++) {
 					String[] vals = lst.get(j);
-					if (containsValue(vals,uname) && containsValue(vals,names.get(i))) {
-						System.out.println(vals[0] + " " + vals[1] + " " + vals[2] + j + i);
+					if (containsValue(vals,names.get(i))) {
 						if (vals[0].equals(uname)) {
 							lst.get(j)[1] = Double.toString(Double.parseDouble(lst.get(j)[1]) + costPP);
-						} else {
+						} else if (vals[2].equals(uname)) {
 							lst.get(j)[1] = Double.toString(Double.parseDouble(lst.get(j)[1]) - costPP);
 						}
 					}
@@ -241,18 +254,29 @@ public class AddTransaction implements ActionListener {
 			}
 		}
 		
+		for (int i = 1; i < optionsCAS.size(); i++) {
+			if(selected.get(i-1) == 1) {
+				optionsCAS.get(i)[1] = Double.toString(Double.parseDouble(optionsCAS.get(i)[1]) + costPP);
+			}
+			UpdateFile.Update(optionsCAS.get(i)[0], optionsCAS.get(i)[1], newFileCAS);
+		}
+		
 		for (int i = 1; i <lst.size(); i++) {
-			UpdateFile.Update(lst.get(i)[0], lst.get(i)[1], lst.get(i)[2], newFile);
+			UpdateFile.Update(lst.get(i)[0], lst.get(i)[1], lst.get(i)[2], newFilePA);
 		}
 	}
 	
 	public void UpdatePAUnequally(int cost, ArrayList<Double> amounts, ArrayList<String> groupMembers) {
 		
-		File newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+code);
-		ArrayList<String[]> records = Exists.contents(newFile, ">");
+		File newFileU = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+code);
+		ArrayList<String[]> records = Exists.contents(newFileU, ">");
+		File newFileCAS = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\CheckAmountSpent\\"+code);
+		ArrayList<String[]> optionsCAS = Exists.contents(newFileCAS, ",");
 		int t;
 		
-		UpdateFile.Write(records.get(0)[0], records.get(0)[1], records.get(0)[2], newFile);
+		UpdateFile.Write(records.get(0)[0], records.get(0)[1], records.get(0)[2], newFileU);
+		optionsCAS.get(0)[1] = Double.toString(Double.parseDouble(optionsCAS.get(0)[1]) + cost);
+		UpdateFile.Write(optionsCAS.get(0)[0], optionsCAS.get(0)[1], newFileCAS);
 		
 		for (int i = 1; i < records.size(); i++) {
 			String[] row = records.get(i);
@@ -265,7 +289,12 @@ public class AddTransaction implements ActionListener {
 					records.get(i)[1] = Double.toString(Double.parseDouble(records.get(i)[1]) + amounts.get(t));
 				}
 			}
-			UpdateFile.Update(records.get(i)[0], records.get(i)[1], records.get(i)[2], newFile);
+			UpdateFile.Update(records.get(i)[0], records.get(i)[1], records.get(i)[2], newFileU);
+		}
+		
+		for (int i = 1; i < optionsCAS.size(); i++) {
+			optionsCAS.get(i)[1] = Double.toString(Double.parseDouble(optionsCAS.get(i)[1]) + amounts.get(i-1));
+			UpdateFile.Update(optionsCAS.get(i)[0], optionsCAS.get(i)[1], newFileCAS);
 		}
 		
 	}
@@ -274,9 +303,13 @@ public class AddTransaction implements ActionListener {
 		
 		File newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+code);
 		ArrayList<String[]> records = Exists.contents(newFile, ">");
+		File newFileCAS = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\CheckAmountSpent\\"+code);
+		ArrayList<String[]> optionsCAS = Exists.contents(newFileCAS, ",");
 		int t;
 		
 		UpdateFile.Write(records.get(0)[0], records.get(0)[1], records.get(0)[2], newFile);
+		optionsCAS.get(0)[1] = Double.toString(Double.parseDouble(optionsCAS.get(0)[1]) + cost);
+		UpdateFile.Write(optionsCAS.get(0)[0], optionsCAS.get(0)[1], newFileCAS);
 		
 		for (int i = 1; i < records.size(); i++) {
 			String[] row = records.get(i);
@@ -292,6 +325,10 @@ public class AddTransaction implements ActionListener {
 			UpdateFile.Update(records.get(i)[0], records.get(i)[1], records.get(i)[2], newFile);
 		}
 		
+		for (int i = 1; i < optionsCAS.size(); i++) {
+			optionsCAS.get(i)[1] = Double.toString(Double.parseDouble(optionsCAS.get(i)[1]) + (double)cost*(double)percentages.get(i-1)/100.0);
+			UpdateFile.Update(optionsCAS.get(i)[0], optionsCAS.get(i)[1], newFileCAS);
+		}
 		
 	}
 	
