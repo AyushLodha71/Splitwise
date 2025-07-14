@@ -37,6 +37,36 @@ public class Exists {
 		
 	}
 	
+	public static String[] exists_Array(String find, File textFile) {
+		
+		FileReader in;
+		BufferedReader readFile;
+		String line;
+		String[] grouplist = new String[0];
+		int location;
+		
+		try {
+			in = new FileReader(textFile);
+			readFile = new BufferedReader(in);
+			while ((line = readFile.readLine()) != null ) {
+				String[] myArray = line.split(",");
+				if(myArray[0].equals(find)) {
+					return myArray;
+				}
+			}
+			readFile.close();
+			in.close();
+		} catch (FileNotFoundException e) {
+			System.err.println("FileNotFoundException: "
+					+ e.getMessage());
+		} catch (IOException e) {;
+			System.err.println("IOException: " + e.getMessage());
+		}
+		
+		return grouplist;
+		
+	}
+	
 	public static Boolean exist(String find, File textFile) {
 		
 		FileReader in;

@@ -5,6 +5,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Random;
+
 import javax.swing.*;
 
 public class AddTransaction implements ActionListener {
@@ -17,7 +19,7 @@ public class AddTransaction implements ActionListener {
 	JCheckBox nameEQS;
 	JTextField nameU, nameBP;
 	JButton backButton, enter;
-	String uname, code;
+	String uname, code,tID;
 	ArrayList<Integer> chosenEQS = new ArrayList<Integer>();
 	ArrayList<JTextField> chosenU = new ArrayList<JTextField>();
 	ArrayList<JTextField> chosenBP = new ArrayList<JTextField>();
@@ -25,6 +27,7 @@ public class AddTransaction implements ActionListener {
 	ArrayList<Double> valuesBP = new ArrayList<Double>();
 	String amountVal = "0";
 	String reasonVal;
+	File tdFile;
 	
 	public AddTransaction(String username, String gcode) {
 		
@@ -98,8 +101,13 @@ public class AddTransaction implements ActionListener {
 			if (amountVal.isEmpty() || reasonVal.isEmpty()) { 
 				response.setText("Enter valid values");
 			} else {
+				tdFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\TransactionDetails\\" + code);
+				ArrayList<String> usedCodes = Exists.exists(uname,tdFile);
+				
+				tID = createCode(usedCodes);
 				File newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PaymentHistory\\"+code);
-				UpdateFile.Update(uname, "$" + amountVal,reasonVal,"0",newFile);
+				String[] data = {uname,amountVal,reasonVal,"0", tID};
+				UpdateFile.Update(data,newFile,">");
 				if (options.getSelectedItem() == "All Equally"){
 					UpdatePAEqually(Integer.parseInt(amountVal));
 					response.setText("Transaction added");
@@ -192,7 +200,7 @@ public class AddTransaction implements ActionListener {
 		
 		File newFilePA = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+code);
 		ArrayList<String[]> optionsPA = Exists.contents(newFilePA, ">");
-		File newFileCAS = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\CheckAmountSpent\\"+code);
+		File newFileCAS = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\CheckAmountSpentFolder\\"+code);
 		ArrayList<String[]> optionsCAS = Exists.contents(newFileCAS, ",");
 		
 		File txtFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\Groups\\"+code);
@@ -215,17 +223,32 @@ public class AddTransaction implements ActionListener {
 			}
 			UpdateFile.Update(optionsPA.get(i)[0], optionsPA.get(i)[1], optionsPA.get(i)[2], newFilePA);
 		}
+		
 		for (int i = 1; i < optionsCAS.size(); i++) {
 			optionsCAS.get(i)[1] = Double.toString(Double.parseDouble(optionsCAS.get(i)[1]) + costPP);
 			UpdateFile.Update(optionsCAS.get(i)[0], optionsCAS.get(i)[1], newFileCAS);
 		}
+		
+		String[] transaction = new String[members.size()+1];
+		
+		transaction[0] = tID;
+		
+		for (int i = 1; i < transaction.length; i++) {
+			if (members.get(i-1).equals(uname)) {
+				transaction[i] = Double.toString(costPP - cost);
+			} else {
+				transaction[i] = Double.toString(costPP);
+			}
+		}
+		
+		UpdateFile.Update(transaction, tdFile, ",");
 		
 	}
 	
 	public void UpdatePAEqBySome (int cost, ArrayList<String[]> lst, ArrayList<String> names, ArrayList<Integer> selected) {
 		
 		File newFilePA = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+code);
-		File newFileCAS = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\CheckAmountSpent\\"+code);
+		File newFileCAS = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\CheckAmountSpentFolder\\"+code);
 		ArrayList<String[]> optionsCAS = Exists.contents(newFileCAS, ",");
 		
 		int sum = 0;
@@ -264,13 +287,36 @@ public class AddTransaction implements ActionListener {
 		for (int i = 1; i <lst.size(); i++) {
 			UpdateFile.Update(lst.get(i)[0], lst.get(i)[1], lst.get(i)[2], newFilePA);
 		}
+		
+		String[] transaction = new String[selected.size()+1];
+		
+		transaction[0] = tID;
+		
+		for (int i = 1; i < transaction.length; i++) {
+			if (names.get(i-1).equals(uname)) {
+				if (selected.get(i-1) == 1) {
+					transaction[i] = Double.toString(costPP - cost);
+				} else {
+					transaction[i] = Double.toString(-1 * cost);
+				}
+			} else {
+				if (selected.get(i-1) == 1) {
+					transaction[i] = Double.toString(costPP);
+				} else {
+					transaction[i] = Double.toString(0);
+				}
+			}
+		}
+		
+		UpdateFile.Update(transaction, tdFile, ",");
+		
 	}
 	
 	public void UpdatePAUnequally(int cost, ArrayList<Double> amounts, ArrayList<String> groupMembers) {
 		
 		File newFileU = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+code);
 		ArrayList<String[]> records = Exists.contents(newFileU, ">");
-		File newFileCAS = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\CheckAmountSpent\\"+code);
+		File newFileCAS = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\CheckAmountSpentFolder\\"+code);
 		ArrayList<String[]> optionsCAS = Exists.contents(newFileCAS, ",");
 		int t;
 		
@@ -297,13 +343,27 @@ public class AddTransaction implements ActionListener {
 			UpdateFile.Update(optionsCAS.get(i)[0], optionsCAS.get(i)[1], newFileCAS);
 		}
 		
+		String[] transaction = new String[groupMembers.size()+1];
+		
+		transaction[0] = tID;
+		
+		for (int i= 1; i < transaction.length; i++) {
+			if (groupMembers.get(i-1).equals(uname)) {
+				transaction[i] = Double.toString(amounts.get(i-1) - (double)cost);
+			} else {
+				transaction[i] = Double.toString(amounts.get(i-1));
+			}
+		}
+		
+		UpdateFile.Update(transaction, tdFile, ",");
+		
 	}
 	
 	public void UpdatePAByPercentages(int cost, ArrayList<Double> percentages, ArrayList<String> groupMembers) {
 		
 		File newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+code);
 		ArrayList<String[]> records = Exists.contents(newFile, ">");
-		File newFileCAS = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\CheckAmountSpent\\"+code);
+		File newFileCAS = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\CheckAmountSpentFolder\\"+code);
 		ArrayList<String[]> optionsCAS = Exists.contents(newFileCAS, ",");
 		int t;
 		
@@ -330,6 +390,20 @@ public class AddTransaction implements ActionListener {
 			UpdateFile.Update(optionsCAS.get(i)[0], optionsCAS.get(i)[1], newFileCAS);
 		}
 		
+		String[] transaction = new String[groupMembers.size()+1];
+		
+		transaction[0] = tID;
+		
+		for (int i= 1; i < transaction.length; i++) {
+			if (groupMembers.get(i-1).equals(uname)) {
+				transaction[i] = Double.toString(((double)percentages.get(i-1) - 100.00) * (double)cost/100);
+			} else {
+				transaction[i] = Double.toString((double)percentages.get(i-1) * cost / 100);
+			}
+		}
+		
+		UpdateFile.Update(transaction, tdFile, ",");
+		
 	}
 	
 	public static boolean containsValue(String[] array, String targetValue) {
@@ -349,6 +423,24 @@ public class AddTransaction implements ActionListener {
 		 
 		JFrame.setDefaultLookAndFeelDecorated(true);
 		frame.setVisible(true);
+		
+	}
+	
+	public static String createCode(ArrayList<String> codesUsed) {
+		
+		String newcode;
+		String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        Random random = new Random();
+		
+		do {
+			newcode = "";
+	        for (int i = 0; i < 7; i++) {
+	            int index = random.nextInt(characters.length());
+	            newcode += characters.charAt(index);
+	        }
+		} while (codesUsed.contains(newcode));
+		
+		return newcode;
 		
 	}
 }

@@ -22,7 +22,8 @@ public class MainPage implements ActionListener{
 	JScrollPane scrollPane;
 	String uname,gcode;
 	ArrayList<String[]> info;
-	JButton addTransaction,settlePayment,checkBalances,checkAmountSpent,back,exitGroup;
+	JButton addTransaction,settlePayment, deleteTransaction,checkBalances,checkAmountSpent,back,exitGroup;
+	File fileLoc;
 	
 	public MainPage(String username, String code) {
 	
@@ -35,16 +36,17 @@ public class MainPage implements ActionListener{
 		listPanel = new JPanel();
 		listPanel.setBorder(BorderFactory.createEmptyBorder(20,50,20,50));
 		
-		info = RetrieveTransactions(gcode);
+		fileLoc = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PaymentHistory\\" + gcode);
+		info = Exists.contents(fileLoc,">");
 		
 		String[] data;
 		if (info.size()!= 0) {
 			data = new String[info.size()];
 			for (int i = 0; i < info.size(); i++) {
 				if (info.get(i)[3].equals("0")) {
-					data[i] = info.get(i)[0] + " added a payment of "+info.get(i)[1] + " for " + info.get(i)[2];
+					data[i] = info.get(i)[0] + " added a payment of $"+info.get(i)[1] + " for " + info.get(i)[2];
 				} else {
-					data[i] = info.get(i)[0] + " paid " + info.get(i)[1] + " to " + info.get(i)[2];
+					data[i] = info.get(i)[0] + " paid $" + info.get(i)[1] + " to " + info.get(i)[2];
 				}
 			}
 		} else {
@@ -71,6 +73,10 @@ public class MainPage implements ActionListener{
 		settlePayment.setMinimumSize(new Dimension(150,30));
 		settlePayment.setMaximumSize(new Dimension(150,30));
 		settlePayment.setPreferredSize(new Dimension(150,30));
+		deleteTransaction = new JButton("Delete Transaction");
+		deleteTransaction.setMinimumSize(new Dimension(150,30));
+		deleteTransaction.setMaximumSize(new Dimension(150,30));
+		deleteTransaction.setPreferredSize(new Dimension(150,30));
 		checkBalances = new JButton("Check Balances");
 		checkBalances.setMinimumSize(new Dimension(150,30));
 		checkBalances.setMaximumSize(new Dimension(150,30));
@@ -89,6 +95,7 @@ public class MainPage implements ActionListener{
 		exitGroup.setPreferredSize(new Dimension(150,30));
 		addTransaction.setAlignmentX(Component.CENTER_ALIGNMENT);
 		settlePayment.setAlignmentX(Component.CENTER_ALIGNMENT);
+		deleteTransaction.setAlignmentX(Component.CENTER_ALIGNMENT);
 		checkBalances.setAlignmentX(Component.CENTER_ALIGNMENT);
 		checkAmountSpent.setAlignmentX(Component.CENTER_ALIGNMENT);
 		back.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -98,6 +105,8 @@ public class MainPage implements ActionListener{
 		addTransaction.setActionCommand("addTransaction");
 		settlePayment.addActionListener(this);
 		settlePayment.setActionCommand("settlePayment");
+		deleteTransaction.addActionListener(this);
+		deleteTransaction.setActionCommand("deleteTransaction");
 		checkBalances.addActionListener(this);
 		checkBalances.setActionCommand("checkBalances");
 		checkAmountSpent.addActionListener(this);
@@ -109,6 +118,8 @@ public class MainPage implements ActionListener{
         buttonPanel.add(addTransaction);
         buttonPanel.add(Box.createVerticalStrut(10)); // Space between buttons
         buttonPanel.add(settlePayment);
+        buttonPanel.add(Box.createVerticalStrut(10)); // Space between buttons
+        buttonPanel.add(deleteTransaction);
         buttonPanel.add(Box.createVerticalStrut(10));
         buttonPanel.add(checkBalances);
         buttonPanel.add(Box.createVerticalStrut(10));
@@ -136,49 +147,21 @@ public class MainPage implements ActionListener{
 		if(eventName.equals("addTransaction")) {
 			AddTransaction atransaction = new AddTransaction(uname,gcode);
 			atransaction.runGUI();
-			frame.dispose();
 		} else if (eventName.equals("settlePayment")) {
 			SettlePayment sPayment = new SettlePayment(uname,gcode);
 			sPayment.runGUI();
-			frame.dispose();
+		} else if(eventName.equals("deleteTransaction")) {
+			DeleteTransaction dTransaction = new DeleteTransaction(uname,gcode);
+			dTransaction.runGUI();
 		} else if (eventName.equals("checkBalances")) {
 			CheckBalances cBalances = new CheckBalances(uname,gcode);
 			cBalances.runGUI();
-			frame.dispose();
 		} else if (eventName.equals("checkAmountSpent")) {
 			CheckAmountSpent cAmtSpent = new CheckAmountSpent(uname,gcode);
 			cAmtSpent.runGUI();
-			frame.dispose();
 		}
-		
-	}
-	
-	public static ArrayList<String[]> RetrieveTransactions(String c) {
-		
-		FileReader in;
-		BufferedReader readFile;
-		String line;
-		File textFile;
-		ArrayList<String[]> transactionlst = new ArrayList<String[]>();
-		int location;
-		
-		textFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PaymentHistory\\"+c);
-		
-		try {
-			in = new FileReader(textFile);
-			readFile = new BufferedReader(in);
-			while ((line = readFile.readLine()) != null ) {
-				String[] myArray = line.split(">");
-				transactionlst.add(myArray);
-			}
-		} catch (FileNotFoundException e) {
-			System.err.println("FileNotFoundException: "
-					+ e.getMessage());
-		} catch (IOException e) {;
-			System.err.println("IOException: " + e.getMessage());
-		}
-		
-		return (transactionlst);
+
+		frame.dispose();
 		
 	}
 	

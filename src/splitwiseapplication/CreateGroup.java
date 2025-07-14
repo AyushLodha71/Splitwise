@@ -111,22 +111,25 @@ public class CreateGroup implements ActionListener{
 	
 	public void AddNewGroup(String gcode, String gname) {
 		
-		File textFile,newFile, userFile, casFile;
+		File textFile,newFile, userFile, casFile,tdFile, paFile;
 		
-		// Adding Username and Password to  credentials.txt
 		textFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\groups.txt");
-		
-		UpdateFile.Update(gcode,gname,textFile);
-		
 		newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\Groups\\"+gcode);
-		casFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\CheckAmountSpent\\"+gcode);
+		casFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\CheckAmountSpentFolder\\"+gcode);
+		tdFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\TransactionDetails\\"+gcode);
+		userFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\Personal_Folders\\"+uname);
+		paFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+gcode);
+		
 		CreateFile(newFile);
 		CreateFile(new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PaymentHistory\\"+gcode));
-		CreateFile(new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+gcode));
+		CreateFile(paFile);
 		CreateFile(casFile);
-		userFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\Personal_Folders\\"+uname);
+		CreateFile(tdFile);
+		
+		UpdateFile.Update(gcode,gname,textFile);
 		UpdateFile.Update(uname,newFile);
 		UpdateFile.Update(gname,userFile);
+		UpdateFile.Update("Member1>Amt>Member2",userFile);
 		UpdateFile.Update("Total","0",casFile);
 		UpdateFile.Update(uname,"0",casFile);
 		

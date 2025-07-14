@@ -34,7 +34,7 @@ public class SettlePayment implements ActionListener{
 		info = RetrievePendingAmount(gcode, uname);
 		
 		String[] data;
-		if (options.size()!= 0) {
+		if (options.size() != 0) {
 			data = new String[options.size()];
 			for (int i = 0; i < options.size(); i++) {
 				if (options.get(i)[0].equals(uname)) {

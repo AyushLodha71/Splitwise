@@ -5,6 +5,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Random;
+
 import javax.swing.*;
 
 public class AmountSettled implements ActionListener{
@@ -13,12 +15,12 @@ public class AmountSettled implements ActionListener{
 	JPanel contentPane;
 	static String uname;
 	static String gcode;
-	String prompt;
+	String prompt, tID;
 	String[] SIInfo;
 	JLabel amountPrompt;
 	JTextField amount;
 	JButton finish,back;
-	File newFile;
+	File newFile, tdFile, grpFile;
 	int i1;
 	double amt;
 	
@@ -45,9 +47,9 @@ public class AmountSettled implements ActionListener{
 			amt = Double.parseDouble(SIInfo[1]);
 		} else {
 			if(SIInfo[2].equals(usrname)) {
-				prompt = "Enter the amount " + SIInfo[2] + " gave you";
+				prompt = "Enter the amount " + SIInfo[0] + " gave you";
 			} else {
-				prompt = "Enter the amount you gave to " + SIInfo[2];
+				prompt = "Enter the amount you gave to " + SIInfo[0];
 			}
 			amt = -1.0 * Double.parseDouble(SIInfo[1]);
 		}
@@ -95,22 +97,31 @@ public class AmountSettled implements ActionListener{
 		newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+gcode);
 		ArrayList<String[]> PAMembers = Exists.contents(newFile, ">");
 		System.out.println(i1 + " " + PAMembers.get(i1)[0] + PAMembers.get(i1)[1] + PAMembers.get(i1)[2]);
-		if (Double.parseDouble(SII[1]) > 0) {
+		newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PaymentHistory\\"+gcode);
+		tdFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\TransactionDetails\\" + gcode);
+		ArrayList<String> usedCodes = Exists.exists(uname,tdFile);
+		tID = createCode(usedCodes);
+		String member2;
+		if (Double.parseDouble(SII[1]) > 0) { 
 			if(SII[0].equals(uname)) {
-				newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PaymentHistory\\"+gcode);
-				UpdateFile.Update(SII[2], "$" + amount,uname,"1",newFile);
+				member2 = SII[2];
+				String[] data = {SII[2], amount,uname,"1",tID};
+				UpdateFile.Update(data,newFile,">");
 			} else {
-				newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PaymentHistory\\"+gcode);
-				UpdateFile.Update(uname, "$" + amount,SII[2],"1",newFile);
+				member2 = SII[0];
+				String[] data = {uname,amount,SII[0],"1",tID};
+				UpdateFile.Update(data,newFile,">");
 			}
 			PAMembers.get(i1)[1] = Double.toString(Double.parseDouble(PAMembers.get(i1)[1]) - Double.parseDouble(amount));
 		} else {
 			if(SII[2].equals(uname)) {
-				newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PaymentHistory\\"+gcode);
-				UpdateFile.Update(SII[2], "$" + amount,uname,"1",newFile);
+				member2 = SII[0];
+				String[] data = {SII[0],amount,uname,"1",tID};
+				UpdateFile.Update(data,newFile,">");
 			} else {
-				newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PaymentHistory\\"+gcode);
-				UpdateFile.Update(uname, "$" + amount,SII[2],"1",newFile);
+				member2 = SII[2];
+				String[] data = {uname,amount,SII[2],"1",tID};
+				UpdateFile.Update(data,newFile,">");
 			}
 			PAMembers.get(i1)[1] = Double.toString(Double.parseDouble(PAMembers.get(i1)[1]) + Double.parseDouble(amount));
 		}
@@ -122,6 +133,49 @@ public class AmountSettled implements ActionListener{
 			UpdateFile.Update(PAMembers.get(i)[0], PAMembers.get(i)[1], PAMembers.get(i)[2], newFile);
 		}
 		
+		grpFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\Groups\\"+gcode);
+		ArrayList<String> grpMembers = Exists.contents_STR(grpFile);
+		
+		String[] transaction = new String[grpMembers.size()+1];
+		
+		transaction[0] = tID;
+		
+		for (int i = 1; i < transaction.length; i++) {
+			if (grpMembers.get(i-1).equals(uname)) {
+				if (Double.parseDouble(SII[1]) > 0) { 
+					if(SII[0].equals(uname)) {
+						transaction[i] = amount;
+					} else {
+						transaction[i] = Double.toString(-1*Double.parseDouble(amount));
+					}
+				} else {
+					if(SII[2].equals(uname)) {
+						transaction[i] = amount;
+					} else {
+						transaction[i] = Double.toString(-1*Double.parseDouble(amount));
+					}
+				}
+			} else if (grpMembers.get(i-1).equals(member2)) {
+				if (Double.parseDouble(SII[1]) > 0) { 
+					if(SII[2].equals(uname)) {
+						transaction[i] = amount;
+					} else {
+						transaction[i] = Double.toString(-1*Double.parseDouble(amount));
+					}
+				} else {
+					if(SII[0].equals(uname)) {
+						transaction[i] = amount;
+					} else {
+						transaction[i] = Double.toString(-1*Double.parseDouble(amount));
+					}
+				}
+			} else {
+				transaction[i] = Double.toString(0.0);
+			}
+		}
+		
+		UpdateFile.Update(transaction, tdFile, ",");
+		
 	}
 	
 	public static void runGUI() {
@@ -129,6 +183,24 @@ public class AmountSettled implements ActionListener{
 		JFrame.setDefaultLookAndFeelDecorated(true);
 		frame.setVisible(true);
 	
+	}
+	
+	public static String createCode(ArrayList<String> codesUsed) {
+		
+		String newcode;
+		String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        Random random = new Random();
+		
+		do {
+			newcode = "";
+	        for (int i = 0; i < 7; i++) {
+	            int index = random.nextInt(characters.length());
+	            newcode += characters.charAt(index);
+	        }
+		} while (codesUsed.contains(newcode));
+		
+		return newcode;
+		
 	}
 	
 }

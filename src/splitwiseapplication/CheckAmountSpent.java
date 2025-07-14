@@ -34,7 +34,7 @@ public class CheckAmountSpent implements ActionListener{
 		contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
 		contentPane.setBorder(BorderFactory.createEmptyBorder(20,50,20,50));
 		
-		values = Exists.contents(new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\CheckAmountSpent\\"+gcode),",");
+		values = Exists.contents(new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\CheckAmountSpentFolder\\"+gcode),",");
 
         columnNames[0] = "Name";
         columnNames[1] = "Amount Spent";

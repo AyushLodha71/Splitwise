@@ -124,9 +124,7 @@ public class JoinGroup implements ActionListener {
 		
 		UpdateFile.Update(gname,userFile); 
 		
-		casFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\CheckAmountSpent\\"+code);
-
-		
+		casFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\CheckAmountSpentFolder\\"+code);
 		
 		UpdateFile.Update(uname,"0",casFile);
 		
