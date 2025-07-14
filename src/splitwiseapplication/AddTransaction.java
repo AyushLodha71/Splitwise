@@ -107,7 +107,7 @@ public class AddTransaction implements ActionListener {
 				tID = createCode(usedCodes);
 				File newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PaymentHistory\\"+code);
 				String[] data = {uname,amountVal,reasonVal,"0", tID};
-				UpdateFile.Update(data,newFile,">");
+				UpdateFile.Update(data,newFile,">"); 
 				if (options.getSelectedItem() == "All Equally"){
 					UpdatePAEqually(Integer.parseInt(amountVal));
 					response.setText("Transaction added");
