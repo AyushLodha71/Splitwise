@@ -96,7 +96,6 @@ public class AmountSettled implements ActionListener{
 	
 		newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PendingAmount\\"+gcode);
 		ArrayList<String[]> PAMembers = Exists.contents(newFile, ">");
-		System.out.println(i1 + " " + PAMembers.get(i1)[0] + PAMembers.get(i1)[1] + PAMembers.get(i1)[2]);
 		newFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\PaymentHistory\\"+gcode);
 		tdFile = new File("D:\\Ayush\\SplitwiseApplication\\src\\splitwiseapplication\\TransactionDetails\\" + gcode);
 		ArrayList<String> usedCodes = Exists.exists(uname,tdFile);

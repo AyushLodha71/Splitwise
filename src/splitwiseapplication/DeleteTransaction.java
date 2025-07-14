@@ -41,7 +41,7 @@ public class DeleteTransaction implements ActionListener{
 			for (int i = 0; i < info.size(); i++) {
 				if (info.get(i)[3].equals("0")) {
 					data[i] = info.get(i)[0] + " added a payment of $"+info.get(i)[1] + " for " + info.get(i)[2];
-				} else {
+				} else if (info.get(i)[3].equals("1")){
 					data[i] = info.get(i)[0] + " paid $" + info.get(i)[1] + " to " + info.get(i)[2];
 				}
 			}
