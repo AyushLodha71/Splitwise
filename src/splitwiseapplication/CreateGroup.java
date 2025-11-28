@@ -3,143 +3,196 @@ package splitwiseapplication;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import javax.swing.*;
 import java.util.Random;
 
 /**
- * CreateGroup - New Group Creation Interface
+ * CreateGroup - Screen for Creating New Groups with Auto-Generated Codes
  * 
- * This class provides functionality for users to create new expense-sharing groups.
- * The process involves:
- * 1. User enters a group name
- * 2. System generates a unique 7-character alphanumeric group code
- * 3. Creates all necessary data files for the group (members, transactions, balances, etc.)
- * 4. Displays the group code for sharing with other members
- * 5. Allows immediate entry into the newly created group
+ * PURPOSE:
+ * Provides a GUI interface where users can create new groups by entering
+ * a group name. Automatically generates a unique 7-character group code
+ * and sets up all necessary database tables and records for the new group.
  * 
- * The generated group code serves as both an identifier and invitation code
- * that other users can use to join the group.
+ * FUNCTIONALITY:
+ * - Accepts group name input from user
+ * - Generates unique 7-character alphanumeric group code
+ * - Validates code uniqueness against existing groups
+ * - Creates all necessary database tables (5 tables across db1, db4, db5, db6, db8)
+ * - Adds group to system-wide group registry (db3.GroupNames)
+ * - Adds creator as first member
+ * - Displays generated code to user
+ * - Allows immediate entry into the newly created group
+ * - Provides back navigation to Groups menu
  * 
- * @version 2.0 - Enhanced with comprehensive documentation and improved UX
+ * USER FLOW:
+ * 1. User enters a group name in text field
+ * 2. User presses Enter to submit
+ * 3. System generates unique 7-character code
+ * 4. System creates all database tables and records
+ * 5. Screen displays: "The group code is: [CODE]"
+ * 6. "Enter" button appears
+ * 7. User can share code with others or click Enter to use group
+ * 
+ * CODE GENERATION:
+ * - Uses alphanumeric characters (A-Z, a-z, 0-9)
+ * - Length: 7 characters
+ * - Validates uniqueness via db3.group_list
+ * - Regenerates if collision detected
+ * 
+ * DATABASE TABLES CREATED:
+ * - db4.[GroupCode]: Group members table
+ * - db5.[GroupCode]: Payment history/transactions table
+ * - db6.[GroupCode]: Payment permissions/debts table
+ * - db1.[GroupCode]: Balance tracking table
+ * - db8.[GroupCode]: Expense splitting/tracking table
+ * 
+ * INITIAL RECORDS:
+ * - db3.GroupNames: Adds (group_name, group_code) entry
+ * - db4.[GroupCode]: Adds creator as first member
+ * - db7.[Username]: Adds group to creator's group list
+ * - db1.[GroupCode]: Creates "Total" and creator balance records (both 0)
+ * 
+ * NAVIGATION:
+ * - Entry Point: Groups.java (when user selects "Create Group")
+ * - Exit Points:
+ *   - MainPage.java (when entering newly created group)
+ *   - Groups.java (when clicking Back)
+ * 
+ * UI COMPONENTS:
+ * - JTextField for group name input
+ * - JButton for Back navigation
+ * - JLabel for displaying generated code
+ * - JButton for Enter (appears after successful creation)
+ * - GridLayout with 3 columns
+ * 
+ * DESIGN PATTERN:
+ * - Implements ActionListener for event handling
+ * - Static frame pattern (single shared JFrame instance)
+ * - Constructor builds UI, runGUI() displays it
+ * 
+ * @author Original Development Team
  */
 public class CreateGroup implements ActionListener{
 
-	// Main application frame
 	static JFrame frame;
-	
-	// UI container panel
 	JPanel contentPane;
-	
-	// UI labels for prompts and displaying generated code
 	JLabel createPrompt,displayCode;
-	
-	// Text field for entering group name
 	JTextField createGroup;
-	
-	// Action buttons
 	JButton enterButton,backButton;
-	
-	// List of user's groups (not currently used)
 	ArrayList<String> groups = new ArrayList<String>();
-	
-	// Current username and generated group code
 	String uname, code;
 	
 	/**
-	 * Constructor - Builds the Create Group Interface
+	 * Constructor - Initialize CreateGroup GUI
 	 * 
-	 * Creates a simple form with:
-	 * - A text field for entering the new group name
-	 * - Enter key support for quick submission
-	 * - Back button to return to groups page
+	 * PURPOSE:
+	 * Creates the group creation interface for a specific user.
+	 * Builds a simple form with text field for entering group name.
 	 * 
-	 * After group creation, displays the generated group code and
-	 * provides an "Enter" button to immediately access the new group.
+	 * BEHAVIOR:
+	 * - Creates new JFrame with title "Splitwise - Create Group"
+	 * - Sets up GridLayout with 3 columns
+	 * - Creates label prompting for group name
+	 * - Creates text field for name input (Enter key submits)
+	 * - Creates Back button for navigation
+	 * - Configures frame but keeps it invisible (runGUI() displays it)
 	 * 
-	 * @param username The logged-in user's username (group creator)
+	 * UI LAYOUT:
+	 * Initially shows:
+	 * [Label: "Enter the name of the new group"] [TextField] [Back Button]
+	 * 
+	 * After group creation:
+	 * [Label] [TextField] [Back Button]
+	 * [Label: "The group code is: XXXXXXX"] [Enter Button] [Empty]
+	 * 
+	 * @param username The username of the logged-in user creating the group
 	 */
 	public CreateGroup(String username) {
 		
 		uname = username;
 		
-		 /* Setup main frame */
+		 /* Create and set up the frame */
 		 frame = new JFrame("Splitwise - Create Group");
 		 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		 
-		 /* Create content pane with 3-column grid layout */
+		 /* Create a content pane */
 		 contentPane = new JPanel();
 		 contentPane.setLayout(new GridLayout(0, 3, 10, 5));
 		 contentPane.setBorder(BorderFactory.createEmptyBorder(20,50,20,50));
-		 
-		 /* Add prompt label */
+		 /* Create and add label */
 		 createPrompt = new JLabel("Enter the name of the new group");
 		 contentPane.add(createPrompt);
-		 
-		 /* Group name input field with Enter key support */
 		 createGroup = new JTextField();
-		 createGroup.setToolTipText("Enter a name for your new group");
 		 createGroup.addActionListener(this);
-		 createGroup.setActionCommand("Create New Group"); // Pressing Enter creates group
+		 createGroup.setActionCommand("Create New Group");
 		 contentPane.add(createGroup);
 		 
-		 /* Back button - return to groups page */
 		 backButton = new JButton("Back");
-		 backButton.setToolTipText("Return to groups page");
 		 backButton.addActionListener(this);
 		 backButton.setActionCommand("Back");
 		 contentPane.add(backButton);
 		 
-		 /* Finalize frame setup */
+		 /* Add content pane to frame */
 		 frame.setContentPane(contentPane);
+		 /* Size and then display the frame. */
 		 frame.pack();
 		 frame.setVisible(false);
 	
 	}
 	
 	/**
-	 * Event Handler - Processes user actions
+	 * actionPerformed - Handle User Actions (Text Field Enter, Button Clicks)
 	 * 
-	 * Handles three states:
-	 * 1. "Create New Group" - Generates code, creates files, displays code
-	 * 2. "Enter" - Enters the newly created group
-	 * 3. "Back" - Returns to groups page without creating
+	 * PURPOSE:
+	 * Event handler for all user interactions in the CreateGroup screen.
+	 * Manages group creation, code generation, and navigation.
 	 * 
-	 * @param event The action event from user interaction
+	 * EVENT TYPES:
+	 * 
+	 * 1. "Enter" - Navigate to the newly created group
+	 *    - Gets group code from stored variable
+	 *    - Creates MainPage with username and group code
+	 *    - Shows MainPage screen
+	 *    - Disposes current frame
+	 * 
+	 * 2. "Create New Group" - Create new group (triggered by Enter key in text field)
+	 *    - Gets group name from text field
+	 *    - Calls createCode() to generate unique 7-character code
+	 *    - Calls AddNewGroup() to create all database tables and records
+	 *    - Displays generated code to user
+	 *    - Creates "Enter" button to join the group
+	 *    - Changes text field action to "Group Created" (prevents re-creation)
+	 * 
+	 * 3. "Back" - Navigate back to Groups menu
+	 *    - Creates new Groups instance
+	 *    - Shows Groups screen
+	 *    - Disposes current frame
+	 * 
+	 * WORKFLOW:
+	 * User enters name → Code generated → Tables created → Code displayed → User can enter
+	 * 
+	 * @param event The ActionEvent containing the action command
 	 */
-	@Override
 	public void actionPerformed(ActionEvent event) {
 		
 		String eventName = event.getActionCommand();
 		
-		if ("Enter".equals(eventName)) {
-			// Enter the newly created group
+		if (eventName.equals("Enter") == true) {
+			String gname = createGroup.getText();
 			MainPage mpage = new MainPage(uname,code);
 			mpage.runGUI();
 			frame.dispose();
-			
-		} else if ("Create New Group".equals(eventName)){
-			// Create new group with entered name
+		} else if ((eventName.equals("Create New Group") == true)){
 			String text = createGroup.getText();
 			
-			// Generate unique group code
-			File txtFile = new File("src/splitwiseapplication/groups.txt");
-			ArrayList<String> usedCodes = Exists.exists(uname,txtFile);
-			code = createCode(usedCodes);
+			code = createCode();
 			
-			// Create all group files and initialize data
 			AddNewGroup(code,text);
 			
-			// Display the generated code and provide Enter button
 			displayCode = new JLabel("The group code is: " + code);
 			enterButton = new JButton("Enter");
-			enterButton.setToolTipText("Enter your new group");
-			createGroup.setActionCommand("Group Created"); // Prevent duplicate creation
+			createGroup.setActionCommand("Group Created");
 			enterButton.addActionListener(this);
 			enterButton.setActionCommand("Enter");
 			contentPane.add(displayCode);
@@ -147,116 +200,176 @@ public class CreateGroup implements ActionListener{
 			frame.setContentPane(contentPane);
 			frame.pack();
 			
-		} else if ("Back".equals(eventName)) {
-			// Return to groups page without creating
-			Groups groupsPage = new Groups(uname);
-			groupsPage.runGUI();
+		} else if (eventName.equals("Back") == true) {
+			Groups groups = new Groups(uname);
+			groups.runGUI();
 			frame.dispose();
 		}
 		
 	}
-	
+
 	/**
-	 * Generates a Unique Group Code
+	 * createCode - Generate Unique 7-Character Alphanumeric Group Code
 	 * 
-	 * Creates a random 7-character alphanumeric code that doesn't conflict
-	 * with any existing group codes. The code uses uppercase letters,
-	 * lowercase letters, and digits (62 possible characters).
+	 * PURPOSE:
+	 * Creates a random, unique group code for identifying a new group.
+	 * Ensures no collisions with existing group codes.
 	 * 
-	 * Format: 7 random characters from [A-Za-z0-9]
-	 * Example: "mKEILR5"
+	 * BEHAVIOR:
+	 * - Generates random 7-character string from alphanumeric characters
+	 * - Validates uniqueness against db3.group_list
+	 * - Regenerates if collision detected (do-while loop)
+	 * - Returns unique code when found
 	 * 
-	 * @param codesUsed List of existing group codes to avoid duplicates
-	 * @return A unique 7-character group code
+	 * CHARACTER SET:
+	 * "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+	 * - 26 uppercase letters
+	 * - 26 lowercase letters
+	 * - 10 digits
+	 * - Total: 62 possible characters per position
+	 * - Total combinations: 62^7 = 3,521,614,606,208 (3.5+ trillion)
+	 * 
+	 * ALGORITHM:
+	 * 1. Initialize empty string
+	 * 2. Loop 7 times:
+	 *    - Generate random index (0 to 61)
+	 *    - Append character at that index
+	 * 3. Check if code exists in db3.group_list
+	 * 4. If exists, repeat from step 1
+	 * 5. Return unique code
+	 * 
+	 * VALIDATION:
+	 * Uses Exists.exist() with db3.group_list query.
+	 * Continues loop until a non-existing code is found.
+	 * 
+	 * USAGE:
+	 * Called by actionPerformed() when creating a new group.
+	 * Currently used: 1 call site (CreateGroup.actionPerformed)
+	 * 
+	 * @return A unique 7-character alphanumeric group code
 	 */
-	public static String createCode(ArrayList<String> codesUsed) {
-		
+	public static String createCode() {
+
 		String newcode;
 		String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         Random random = new Random();
 		
-        // Keep generating until we find a unique code
 		do {
 			newcode = "";
 	        for (int i = 0; i < 7; i++) {
 	            int index = random.nextInt(characters.length());
 	            newcode += characters.charAt(index);
 	        }
-		} while (codesUsed.contains(newcode));
-		
+		} while (Exists.exist("http://localhost:8080/db3/GetRowData?table=group_list&group_code=" + newcode) == false);
 		return newcode;
 		
 	}
 	
 	/**
-	 * Creates New Group with All Required Files
+	 * AddNewGroup - Create All Database Tables and Records for New Group
 	 * 
-	 * Initializes a complete group environment by:
-	 * 1. Creating group entry in groups.txt (code,name mapping)
-	 * 2. Creating Groups/[code] file (member list)
-	 * 3. Creating PaymentHistory/[code] file (transaction log)
-	 * 4. Creating PendingAmount/[code] file (balance tracking)
-	 * 5. Creating CheckAmountSpentFolder/[code] file (spending totals)
-	 * 6. Creating TransactionDetails/[code] file (detailed records)
-	 * 7. Adding group to creator's personal folder
-	 * 8. Initializing creator as first member with $0 spent
+	 * PURPOSE:
+	 * Sets up complete database infrastructure for a newly created group.
+	 * Creates 5 separate tables across multiple databases and initializes
+	 * essential records including the group registry and creator membership.
 	 * 
-	 * @param gcode The generated unique group code
-	 * @param gname The user-provided group name
+	 * BEHAVIOR:
+	 * Executes database operations in two phases:
+	 * 
+	 * PHASE 1: Create Tables (5 tables)
+	 * 1. db4.[GroupCode] - Group members table
+	 *    Schema: id (INT AUTO_INCREMENT PK), name (VARCHAR 100 NOT NULL)
+	 * 
+	 * 2. db5.[GroupCode] - Payment history/transactions table
+	 *    Schema: id (PK), Payee (VARCHAR 100), Amount (DECIMAL 10,2), 
+	 *            Reason (VARCHAR 100), TType (INT), tID (VARCHAR 100)
+	 * 
+	 * 3. db6.[GroupCode] - Payment permissions/debts table
+	 *    Schema: id (PK), Member1 (VARCHAR 100), Amount (DECIMAL 10,2), 
+	 *            Member2 (VARCHAR 100)
+	 * 
+	 * 4. db1.[GroupCode] - Balance tracking table
+	 *    Schema: id (PK), Name (VARCHAR 100), Amount (DECIMAL 10,2)
+	 * 
+	 * 5. db8.[GroupCode] - Expense splitting/tracking table
+	 *    Schema: id (PK), Creator (VARCHAR 100), tID (VARCHAR 100),
+	 *            [username] (DECIMAL 10,2 NOT NULL)
+	 *    Note: Creates column for group creator immediately
+	 * 
+	 * PHASE 2: Insert Initial Records (5 inserts)
+	 * 1. db3.GroupNames - Register group globally
+	 *    INSERT: (group_name, group_code)
+	 * 
+	 * 2. db4.[GroupCode] - Add creator as first member
+	 *    INSERT: (name) VALUES (username)
+	 * 
+	 * 3. db7.[Username] - Add group to creator's group list
+	 *    INSERT: (GroupID, GroupName)
+	 * 
+	 * 4. db1.[GroupCode] - Create "Total" balance tracker
+	 *    INSERT: (Name, Amount) VALUES ('Total', 0)
+	 * 
+	 * 5. db1.[GroupCode] - Create creator's balance record
+	 *    INSERT: (Name, Amount) VALUES (username, 0)
+	 * 
+	 * CRITICAL DETAILS:
+	 * - All tables use INT AUTO_INCREMENT PRIMARY KEY for id column
+	 * - Amount fields use DECIMAL(10,2) for precise currency handling
+	 * - db8 table immediately includes creator's column for expense tracking
+	 * - "Total" record in db1 tracks overall group balance
+	 * 
+	 * URL ENCODING:
+	 * Uses %20 for spaces, %2C for commas in SQL statements sent via HTTP.
+	 * 
+	 * USAGE:
+	 * Called by actionPerformed() after code generation.
+	 * Currently used: 1 call site (CreateGroup.actionPerformed)
+	 * 
+	 * @param gcode The unique 7-character group code
+	 * @param gname The group name entered by the user
 	 */
 	public void AddNewGroup(String gcode, String gname) {
 		
-		File textFile,newFile, userFile, casFile,tdFile, paFile;
+		ApiCaller.ApiCaller1("http://localhost:8080/db4/CreateTable?table="+gcode+"&columns=id%20INT%20AUTO_INCREMENT%20PRIMARY%20KEY,%20name%20VARCHAR(100)%20NOT%20NULL");
+		ApiCaller.ApiCaller1("http://localhost:8080/db5/CreateTable?table="+gcode+"&columns=id%20INT%20AUTO_INCREMENT%20PRIMARY%20KEY%2C%20Payee%20VARCHAR(100)%20NOT%20NULL%2C%20Amount%20DECIMAL(10%2C2)%20NOT%20NULL%2C%20Reason%20VARCHAR(100)%20NOT%20NULL%2C%20TType%20INT%20NOT%20NULL%2C%20tID%20VARCHAR(100)%20COLLATE%20utf8mb4_bin%20NOT%20NULL");
+		ApiCaller.ApiCaller1("http://localhost:8080/db6/CreateTable?table="+gcode+"&columns=id%20INT%20AUTO_INCREMENT%20PRIMARY%20KEY,%20Member1%20VARCHAR(100)%20NOT%20NULL,%20Amount%20DECIMAL(10%2C2)%20NOT%20NULL,%20Member2%20VARCHAR(100)%20NOT%20NULL");
+		ApiCaller.ApiCaller1("http://localhost:8080/db1/CreateTable?table="+gcode+"&columns=id%20INT%20AUTO_INCREMENT%20PRIMARY%20KEY,%20Name%20VARCHAR(100)%20NOT%20NULL,%20Amount%20DECIMAL(10%2C2)%20NOT%20NULL");
+		ApiCaller.ApiCaller1("http://localhost:8080/db8/CreateTable?table="+gcode+"&columns=id%20INT%20AUTO_INCREMENT%20PRIMARY%20KEY,%20Creator%20VARCHAR(100)%20,%20tID%20VARCHAR(100)%20COLLATE%20utf8mb4_bin,"+uname+"%20DECIMAL(10%2C2)%20NOT%20NULL");
 		
-		// Define all group-related files
-		textFile = new File("src/splitwiseapplication/groups.txt");
-		newFile = new File("src/splitwiseapplication/Groups/"+gcode);
-		casFile = new File("src/splitwiseapplication/CheckAmountSpentFolder/"+gcode);
-		tdFile = new File("src/splitwiseapplication/TransactionDetails/"+gcode);
-		userFile = new File("src/splitwiseapplication/Personal_Folders/"+uname);
-		paFile = new File("src/splitwiseapplication/PendingAmount/"+gcode);
-        
-		// Create all necessary files
-		CreateFile(newFile);
-		CreateFile(new File("src/splitwiseapplication/PaymentHistory/"+gcode));
-		CreateFile(paFile);
-		CreateFile(casFile);
-		CreateFile(tdFile);
-		
-		// Initialize file contents
-		UpdateFile.Update(gcode,gname,textFile);          // Add to groups registry
-		UpdateFile.Update(uname,newFile);                  // Add creator as first member
-		UpdateFile.Update(gname,userFile);                 // Add to creator's personal folder
-		UpdateFile.Update("Member1>Amt>Member2",userFile); // Header for pending amounts
-		UpdateFile.Update("Total","0",casFile);            // Initialize total spending
-		UpdateFile.Update(uname,"0",casFile);              // Initialize creator's spending
-		
-	}
-
-	/**
-	 * Creates a New File
-	 * 
-	 * Simple file creation utility that handles IOException.
-	 * 
-	 * @param newFile The file to create
-	 */
-	public void CreateFile(File newFile) {
-		
-		try {
-			 newFile.createNewFile();
-		} catch (IOException e) {
-			System.err.println("IOException: " + e.getMessage());
-		}
+		ApiCaller.ApiCaller1("http://localhost:8080/db3/InsertData?table=GroupNames&params=(group_name,group_code)&info=('" + gname + "','" + gcode + "')");
+		ApiCaller.ApiCaller1("http://localhost:8080/db4/InsertData?table="+gcode+"&params=(name)&info=('" + uname + "')");
+		ApiCaller.ApiCaller1("http://localhost:8080/db7/InsertData?table="+uname+"&params=(GroupID,GroupName)&info=('" + gcode + "','" + gname + "')");
+		ApiCaller.ApiCaller1("http://localhost:8080/db1/InsertData?table="+gcode+"&params=(Name,Amount)&info=('Total',0)");
+		ApiCaller.ApiCaller1("http://localhost:8080/db1/InsertData?table="+gcode+"&params=(Name,Amount)&info=('" + uname + "',0)");
 		
 	}
 	
 	/**
-	 * Display the Create Group GUI
+	 * runGUI - Display the CreateGroup Window
 	 * 
-	 * Makes the create group frame visible to the user.
-	 * Should be called after constructing a CreateGroup object.
+	 * PURPOSE:
+	 * Makes the CreateGroup frame visible to the user.
+	 * Final step in showing the group creation interface.
+	 * 
+	 * BEHAVIOR:
+	 * - Enables default window decorations (title bar, close button, etc.)
+	 * - Makes the instance frame visible
+	 * 
+	 * DESIGN PATTERN:
+	 * Follows the two-step initialization pattern used throughout the app:
+	 * 1. Constructor builds the UI (but keeps frame invisible)
+	 * 2. runGUI() displays the frame
+	 * 
+	 * This separation allows for UI setup before display.
+	 * 
+	 * INSTANCE METHOD:
+	 * Called on CreateGroup instance to display its frame.
+	 * 
+	 * USAGE:
+	 * Called by Groups.java after creating CreateGroup instance.
+	 * Currently used: 1 call site (Groups.actionPerformed)
 	 */
-	public static void runGUI() {
+	public void runGUI() {
 		 
 		JFrame.setDefaultLookAndFeelDecorated(true);
 		frame.setVisible(true);

@@ -2,82 +2,94 @@ package splitwiseapplication;
 
 import java.awt.GridLayout;
 import java.awt.event.*;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
 import javax.swing.*;
 
 /**
- * Groups - Main Navigation Hub
+ * Main group management screen shown after successful login/registration.
  * 
- * This class provides the primary navigation interface after successful login.
- * It serves as the central hub where users can access all major features:
- * - Enter an existing group they belong to
- * - Join a group using an invitation code
- * - Create a new group and invite members
- * - Log out of the application
+ * Purpose:
+ * This GUI presents a dropdown menu with group-related operations that authenticated
+ * users can perform. It serves as the main hub for all group interactions.
  * 
- * The interface uses a simple dropdown menu for action selection,
- * providing clear and straightforward navigation to all core features.
+ * Available operations:
+ * 1. Enter Group - Access an existing group you're a member of
+ * 2. Join Group - Join an existing group using a group code
+ * 3. Create Group - Create a new group and become its creator
+ * 4. Log out - Return to login/register screen
  * 
- * This is typically the first page users see after logging in or registering.
+ * Navigation context:
+ * Users arrive here from:
+ * - LoginPageGUI (after successful login)
+ * - RegisterPageGUI (after successful registration)
+ * - Back from EnterGroup/JoinGroup/CreateGroup screens
+ * - Back from MainPage (group screen)
  * 
- * @version 2.0 - Enhanced with comprehensive documentation and improved UX
+ * User flow:
+*	 		LoginPageGUI/RegisterPageGUI
+						↓
+				Groups (this screen)
+						↓
+				┌─────┼─────┬─────┐
+				↓     ↓     ↓     ↓
+			  Enter Join  Create Logout → LoginOrRegister
+			  Group Group Group
+				↓     ↓     ↓   
+				└─────┴─────┘
+					  ↓
+					MainPage
+ * 
+ * Usage locations (9 call sites):
+ * - LoginPageGUI: After successful authentication (2 calls)
+ * - RegisterPageGUI: After account creation (2 calls)
+ * - EnterGroup: Back button navigation (1 call)
+ * - JoinGroup: Back button navigation (1 call)
+ * - CreateGroup: After group creation (1 call)
+ * - MainPage: Back button from group view (2 calls)
  */
 public class Groups implements ActionListener{
 	
-	// Main application frame
 	static JFrame frame;
-	
-	// UI container panel
 	JPanel contentPane;
-	
-	// Prompt label for user guidance
 	JLabel optionsPrompt;
-	
-	// Dropdown menu for action selection
 	JComboBox options;
-	
-	// List of user's groups (not currently used in this class)
-	ArrayList<String> groups = new ArrayList<String>();
-	
-	// Current logged-in username
 	String uname;
 	
 	/**
-	 * Constructor - Builds the Main Navigation Interface
+	 * Constructs the Groups management screen for an authenticated user.
 	 * 
-	 * Creates a simple dropdown menu interface with four main options:
-	 * 1. Enter Group - Access an existing group the user belongs to
-	 * 2. Join Group - Join a new group using an invitation code
-	 * 3. Create Group - Create a new group and invite members
-	 * 4. Log out - Exit the application and return to login screen
+	 * Contract:
+	 * - Requires username of authenticated user
+	 * - Creates dropdown menu with 4 group operations + logout
+	 * - Window is created but hidden (call runGUI() to display)
 	 * 
-	 * @param username The logged-in user's username
+	 * @param username  The authenticated user's username (passed from login/register)
+	 * 
+	 * UI structure:
+	 * +----------------------------------+
+	 * | Choose an option to proceed      |
+	 * | [Select Item ▼]                  |
+	 * |   - Enter Group                  |
+	 * |   - Join Group                   |
+	 * |   - Create Group                 |
+	 * |   - Log out                      |
+	 * +----------------------------------+
+	 * 
+	 * Post-conditions:
+	 * - uname field stores the username
+	 * - frame configured with dropdown menu
+	 * - Window packed but hidden
 	 */
 	public Groups(String username) {
 		
 		 uname = username;
-		 
-		 /* Setup main frame */
 		 frame = new JFrame("Splitwise - Groups");
 		 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		 
-		 /* Create content pane with 2-column grid layout */
 		 contentPane = new JPanel();
 		 contentPane.setLayout(new GridLayout(0, 2, 10, 5));
 		 contentPane.setBorder(BorderFactory.createEmptyBorder(20,50,20,50));
-		 
-		 /* Add prompt label */
 		 optionsPrompt = new JLabel("Choose an option to proceed");
 		 contentPane.add(optionsPrompt);
-		 
-		 /* Create dropdown menu with all navigation options */
 		 options = new JComboBox();
-		 options.setToolTipText("Select an action from the dropdown");
 		 options.addItem("Select Item");
 		 options.addItem("Enter Group");
 		 options.addItem("Join Group");
@@ -86,7 +98,6 @@ public class Groups implements ActionListener{
 		 options.addActionListener(this);
 		 contentPane.add(options);
 		 
-		 /* Finalize frame setup */
 		 frame.setContentPane(contentPane);
 		 frame.pack();
 		 frame.setVisible(false);
@@ -94,41 +105,63 @@ public class Groups implements ActionListener{
 	}
 	
 	/**
-	 * Event Handler - Processes dropdown selection
+	 * Handles dropdown menu selection events.
 	 * 
-	 * Routes the user to the appropriate page based on their selection:
-	 * - "Enter Group" -> EnterGroup page (select from user's existing groups)
-	 * - "Join Group" -> JoinGroup page (enter invitation code)
-	 * - "Create Group" -> CreateGroup page (create new group)
-	 * - "Log out" -> LoginOrRegister page (logout and return to login screen)
+	 * Contract:
+	 * - Called when user selects an item from the dropdown
+	 * - Routes to appropriate screen based on selection
+	 * - Disposes current window after navigation
 	 * 
-	 * @param event The action event from dropdown selection
+	 * @param event  The ActionEvent from dropdown selection
+	 * 
+	 * Behavior based on selection:
+	 * 
+	 * "Enter Group":
+	 * - Opens EnterGroup screen
+	 * - User can select from their existing groups
+	 * - Navigates to MainPage for selected group
+	 * 
+	 * "Join Group":
+	 * - Opens JoinGroup screen
+	 * - User enters group code to join existing group
+	 * - Adds user to group members if code is valid
+	 * 
+	 * "Create Group":
+	 * - Opens CreateGroup screen
+	 * - User creates new group with name
+	 * - User becomes group creator and first member
+	 * 
+	 * "Log out":
+	 * - Returns to LoginOrRegister screen
+	 * - Ends current user session
+	 * - No data is persisted locally (all in backend)
+	 * 
+	 * "Select Item":
+	 * - Default/placeholder option
+	 * - No action taken (handled implicitly by no else clause)
+	 * 
+	 * Navigation pattern:
+	 * - Always disposes current window before opening next
+	 * - New window instance created for each navigation
 	 */
 	@Override
 	public void actionPerformed(ActionEvent event) {
 		
 		String selectedItem = (String) options.getSelectedItem();
 		
-		if ("Enter Group".equals(selectedItem)) {
-			// Navigate to group selection page
+		if (selectedItem.equals("Enter Group")) {
 			EnterGroup egroup = new EnterGroup(uname);
 			egroup.runGUI();
 			frame.dispose();
-			
-		} else if ("Join Group".equals(selectedItem)) {
-			// Navigate to join group page
+		} else if (selectedItem.equals("Join Group")) {
 			JoinGroup jgroup = new JoinGroup(uname);
 			jgroup.runGUI();
 			frame.dispose();
-			
-		} else if ("Create Group".equals(selectedItem)) {
-			// Navigate to create group page
+		} else if (selectedItem.equals("Create Group")) {
 			CreateGroup cgroup = new CreateGroup(uname);
 			cgroup.runGUI();
 			frame.dispose();
-			
-		} else if ("Log out".equals(selectedItem)){
-			// Log out and return to login/register screen
+		} else if (selectedItem.equals("Log out")){
 			LoginOrRegister loginorRegisterGUI = new LoginOrRegister();
 			loginorRegisterGUI.runGUI();
 			frame.dispose();
@@ -137,12 +170,29 @@ public class Groups implements ActionListener{
 	}
 
 	/**
-	 * Display the Groups Navigation GUI
+	 * Makes the Groups window visible to the user.
 	 * 
-	 * Makes the groups navigation frame visible to the user.
-	 * Should be called after constructing a Groups object.
+	 * Contract:
+	 * - Must be called after constructor to display the window
+	 * - Sets default look and feel decoration
+	 * - Makes the frame visible on screen
+	 * 
+	 * Usage pattern:
+	 * 1. Create instance: Groups groups = new Groups(username)
+	 * 2. Show window: groups.runGUI()
+	 * 
+	 * Note:
+	 * - Instance method accessing static frame field
+	 * - Must be called on Groups instance
+	 * - Frame is shared across all instances (static field)
+	 * 
+	 * Called from (9 locations):
+	 * - LoginPageGUI: After successful login
+	 * - RegisterPageGUI: After registration
+	 * - EnterGroup/JoinGroup/CreateGroup: Back navigation
+	 * - MainPage: Back navigation
 	 */
-	public static void runGUI() {
+	public void runGUI() {
 		 
 		JFrame.setDefaultLookAndFeelDecorated(true);
 		frame.setVisible(true);

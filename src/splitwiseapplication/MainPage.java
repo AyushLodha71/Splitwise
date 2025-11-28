@@ -6,168 +6,211 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.ArrayList;
 import javax.swing.*;
 
 /**
- * MainPage - Group Transaction Dashboard
+ * MainPage - Primary Group Dashboard and Transaction Hub
  * 
- * This class provides the central interface for managing group expenses and activities.
- * It displays a transaction history feed and provides access to all group management features:
+ * PURPOSE:
+ * The central hub for all group-related operations. Displays transaction history
+ * and provides access to all major features: adding transactions, settling payments,
+ * deleting transactions, checking balances, viewing expenses, and exiting groups.
  * 
- * Key Features:
- * - Transaction history display (payments, settlements, member exits)
- * - Add new expense transactions
- * - Settle debts between members
- * - Delete incorrect transactions
- * - Check balance summaries
- * - View individual spending totals
- * - Exit group (with debt validation)
- * - Navigate back to groups list
+ * FUNCTIONALITY:
+ * - Displays scrollable transaction history list
+ * - Shows three types of transactions:
+ *   1. Payments added (Type 0): "[User] added a payment of $X for [reason]"
+ *   2. Settlements (Type 1): "[User] paid $X to [recipient]"
+ *   3. Group exits (Type 2): "[User] left the group"
+ * - Provides 7 action buttons for group operations
+ * - Validates exit eligibility (must have zero balance)
+ * - Performs complete cleanup when user exits group
  * 
- * The interface uses a BorderLayout with:
- * - WEST: Scrollable transaction history list
- * - EAST: Vertical button panel for all actions
+ * USER FLOW:
+ * 1. User enters group from EnterGroup, JoinGroup, or CreateGroup
+ * 2. MainPage displays transaction history
+ * 3. User selects an action button
+ * 4. Application navigates to corresponding screen
+ * 5. User can exit group (if eligible) or go back to Groups menu
  * 
- * @version 2.0 - Enhanced with comprehensive documentation and improved UX
+ * TRANSACTION DISPLAY:
+ * - Fetches from db5.[GroupCode] table
+ * - Formats based on TType column:
+ *   - TType=0: Payment/expense added
+ *   - TType=1: Settlement/repayment
+ *   - TType=2: Member left group
+ * - Shows "No transactions Yet" if empty
+ * 
+ * EXIT GROUP LOGIC:
+ * Must satisfy exit eligibility:
+ * - User must have $0 balance with ALL other members
+ * - Checks db6 for any non-zero amounts where user is Member1 OR Member2
+ * - If eligible: Deletes all user records and navigates to Groups
+ * - If not eligible: Shows error "Settle Pending Amount before exiting"
+ * 
+ * DATABASE CLEANUP ON EXIT (DeleteRecords):
+ * 1. db6: Delete payment records where user is Member1
+ * 2. db6: Delete payment records where user is Member2
+ * 3. db1: Update "Total" balance (subtract user's amount)
+ * 4. db1: Delete user's balance record
+ * 5. db4: Delete user from members table
+ * 6. db7: Delete group from user's group list
+ * 7. db5: Insert "left the group" transaction (TType=2)
+ * 8. db8: Drop user's column from expense tracking table
+ * 
+ * NAVIGATION PATHS:
+ * - Entry Points: EnterGroup, JoinGroup, CreateGroup (9 call sites)
+ * - Exit To:
+ *   - AddTransaction (add new expense/payment)
+ *   - SettlePayment (pay money to another member)
+ *   - DeleteTransaction (remove transaction)
+ *   - CheckBalances (view who owes what)
+ *   - CheckAmountSpent (view expense history)
+ *   - Groups menu (back button or after exit)
+ * 
+ * UI LAYOUT:
+ * - BorderLayout with two main sections:
+ *   - WEST: Scrollable transaction list (250x300)
+ *   - EAST: Vertical button panel with 7 buttons
+ * - All buttons: 150x30 pixels, center-aligned, 10px spacing
+ * 
+ * DESIGN PATTERN:
+ * - Implements ActionListener for event handling
+ * - Static frame pattern (single shared JFrame instance)
+ * - Constructor builds UI, runGUI() displays it
+ * - Action command strings differentiate button actions
+ * 
+ * @author Original Development Team
  */
 public class MainPage implements ActionListener{
 	
-	// Main application frame
 	static JFrame frame;
-	
-	// UI panels: transaction list area and action button column
 	JPanel listPanel, buttonPanel;
-	
-	// Scrollable list displaying transaction history
 	JList<String> transactionList;
 	JScrollPane scrollPane;
-	
-	// User and group identifiers
 	String uname,gcode;
-	
-	// Transaction data loaded from payment history file
-	ArrayList<String[]> info;
-	
-	// Action buttons for all group management features
+	String[][] info;
 	JButton addTransaction,settlePayment, deleteTransaction,checkBalances,checkAmountSpent,back,exitGroup;
-	
-	// File reference for payment history
 	File fileLoc;
 	
 	/**
-	 * Constructor - Builds the Group Dashboard Interface
+	 * Constructor - Initialize MainPage GUI for Specific Group
 	 * 
-	 * Creates the main page UI with:
-	 * 1. Transaction history panel (left side) - Shows all group activities
-	 * 2. Action button panel (right side) - Access to all features
+	 * PURPOSE:
+	 * Creates the main group dashboard displaying transaction history and
+	 * providing access to all group operations.
 	 * 
-	 * Transaction History Format:
-	 * - Type 0: "User added a payment of $X for Description"
-	 * - Type 1: "User paid $X to Recipient" (settlement)
-	 * - Type 2: "User left the group"
+	 * BEHAVIOR:
+	 * - Stores username and group code
+	 * - Creates BorderLayout frame
+	 * - Fetches transaction history from db5.[GroupCode]
+	 * - Formats transactions based on type (payment/settlement/exit)
+	 * - Creates scrollable JList for transactions
+	 * - Creates 7 action buttons with consistent sizing (150x30)
+	 * - Sets up button panel with vertical layout and spacing
+	 * - Configures frame but keeps invisible (runGUI() displays it)
 	 * 
-	 * @param username The logged-in user's username
-	 * @param code The group code for the current group
+	 * TRANSACTION FORMATTING:
+	 * - TType=0: "[Payee] added a payment of $[Amount] for [Reason]"
+	 * - TType=1: "[Payee] paid $[Amount] to [Reason]"
+	 * - TType=2: "[Payee] left the group"
+	 * - Empty: "No transactions Yet"
+	 * 
+	 * BUTTON SETUP (7 buttons):
+	 * 1. Add Transaction - Navigate to AddTransaction screen
+	 * 2. Settle Payment - Navigate to SettlePayment screen
+	 * 3. Delete Transaction - Navigate to DeleteTransaction screen
+	 * 4. Check Balances - Navigate to CheckBalances screen
+	 * 5. Check Amount Spent - Navigate to CheckAmountSpent screen
+	 * 6. Back - Return to Groups menu
+	 * 7. Exit Group - Leave group (if eligible)
+	 * 
+	 * UI LAYOUT:
+	 * ┌─────────────────────┬──────────────────┐
+	 * │ Transaction List    │  Add Transaction │
+	 * │ (Scrollable)        │  Settle Payment  │
+	 * │ 250x300px           │  Delete Trans... │
+	 * │                     │  Check Balances  │
+	 * │                     │  Check Amt Spent │
+	 * │                     │  Back            │
+	 * │                     │  Exit Group      │
+	 * └─────────────────────┴──────────────────┘
+	 * 
+	 * DATABASE QUERY:
+	 * db5.[GroupCode]: SELECT * - Gets all transactions
+	 * 
+	 * @param username The logged-in user viewing the group
+	 * @param code The group code for the group being viewed
 	 */
 	public MainPage(String username, String code) {
 	
 		uname = username;
 		gcode = code;
-		
-		/* Setup main frame */
 		frame = new JFrame("Splitwise - Main Page");
 		frame.setLayout(new BorderLayout());
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
-		/* Create transaction history panel (left side) */
+		/* Create a content pane */
 		listPanel = new JPanel();
 		listPanel.setBorder(BorderFactory.createEmptyBorder(20,50,20,50));
 		
-		/* Load payment history for this group */
-		fileLoc = new File("src/splitwiseapplication/PaymentHistory/" + gcode);
-		info = Exists.contents(fileLoc,">");
+		info = ApiCaller.ApiCaller1("http://localhost:8080/db5/GetRowData?table="+ code);
 		
-		/* Build transaction history display */
 		String[] data;
-		if (!info.isEmpty()) {
-			// Format each transaction for display
-			data = new String[info.size()];
-			for (int i = 0; i < info.size(); i++) {
-				// Transaction format: [username, amount, description/recipient, type]
-				if (info.get(i)[3].equals("0")) {
-					// Type 0: Expense added
-					data[i] = info.get(i)[0] + " added a payment of $"+info.get(i)[1] + " for " + info.get(i)[2];
-				} else if (info.get(i)[3].equals("1")){
-					// Type 1: Direct payment/settlement
-					data[i] = info.get(i)[0] + " paid $" + info.get(i)[1] + " to " + info.get(i)[2];
-				}else if (info.get(i)[3].equals("2")){
-					// Type 2: Member exit
-					data[i] = info.get(i)[0] + " left the group";
+		if (info.length!= 0) {
+			data = new String[info.length];
+			for (int i = 0; i < info.length; i++) {
+				if (info[i][4].equals("0")) {
+					data[i] = info[i][1] + " added a payment of $"+info[i][2] + " for " + info[i][3];
+				} else if (info[i][4].equals("1")){
+					data[i] = info[i][1] + " paid $" + info[i][2] + " to " + info[i][3];
+				}else if (info[i][4].equals("2")){
+					data[i] = info[i][1] + " left the group";
 				}
 			}
 		} else {
-			// No transactions yet - show placeholder
 			data = new String[1];
 			data[0]="No transactions Yet";
 		}
 		
-		/* Create scrollable transaction list */
 		transactionList = new JList<>(data);
-		transactionList.setToolTipText("Transaction history for this group");
 		
 		scrollPane = new JScrollPane(transactionList);
 		scrollPane.setPreferredSize(new Dimension(250, 300));
 		listPanel.add(scrollPane);
 		
-		/* Create action button panel (right side) */
 		buttonPanel = new JPanel();
+		
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
 
-		/* Initialize all action buttons with consistent sizing */
+        // Add some buttons to the buttonPanel
 		addTransaction = new JButton("Add Transaction");
 		addTransaction.setMinimumSize(new Dimension(150,30));
 		addTransaction.setMaximumSize(new Dimension(150,30));
 		addTransaction.setPreferredSize(new Dimension(150,30));
-		addTransaction.setToolTipText("Add a new expense to split among members");
-		
 		settlePayment = new JButton("Settle Payment");
 		settlePayment.setMinimumSize(new Dimension(150,30));
 		settlePayment.setMaximumSize(new Dimension(150,30));
 		settlePayment.setPreferredSize(new Dimension(150,30));
-		settlePayment.setToolTipText("Record a debt payment to another member");
-		
 		deleteTransaction = new JButton("Delete Transaction");
 		deleteTransaction.setMinimumSize(new Dimension(150,30));
 		deleteTransaction.setMaximumSize(new Dimension(150,30));
 		deleteTransaction.setPreferredSize(new Dimension(150,30));
-		deleteTransaction.setToolTipText("Remove an incorrect transaction");
-		
 		checkBalances = new JButton("Check Balances");
 		checkBalances.setMinimumSize(new Dimension(150,30));
 		checkBalances.setMaximumSize(new Dimension(150,30));
 		checkBalances.setPreferredSize(new Dimension(150,30));
-		checkBalances.setToolTipText("View who owes whom and how much");
-		
 		checkAmountSpent = new JButton("Check Amount Spent");
 		checkAmountSpent.setMinimumSize(new Dimension(150,30));
 		checkAmountSpent.setMaximumSize(new Dimension(150,30));
 		checkAmountSpent.setPreferredSize(new Dimension(150,30));
-		checkAmountSpent.setToolTipText("See individual spending totals");
-		
 		back = new JButton("Back");
 		back.setMinimumSize(new Dimension(150,30));
 		back.setMaximumSize(new Dimension(150,30));
 		back.setPreferredSize(new Dimension(150,30));
-		back.setToolTipText("Return to groups list");
-		
 		exitGroup = new JButton("Exit Group");
 		exitGroup.setMinimumSize(new Dimension(150,30));
 		exitGroup.setMaximumSize(new Dimension(150,30));
 		exitGroup.setPreferredSize(new Dimension(150,30));
-		exitGroup.setToolTipText("Leave this group (must settle all debts first)");
-		
-		/* Center-align all buttons */
 		addTransaction.setAlignmentX(Component.CENTER_ALIGNMENT);
 		settlePayment.setAlignmentX(Component.CENTER_ALIGNMENT);
 		deleteTransaction.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -176,7 +219,6 @@ public class MainPage implements ActionListener{
 		back.setAlignmentX(Component.CENTER_ALIGNMENT);
 		exitGroup.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-		/* Register action listeners and commands for all buttons */
 		addTransaction.addActionListener(this);
 		addTransaction.setActionCommand("addTransaction");
 		settlePayment.addActionListener(this);
@@ -193,7 +235,7 @@ public class MainPage implements ActionListener{
 		exitGroup.setActionCommand("exit");
 		
 		
-		/* Add buttons to panel with vertical spacing */
+        // Add some vertical space between buttons
         buttonPanel.add(Box.createVerticalStrut(10)); // Top padding
         buttonPanel.add(addTransaction);
         buttonPanel.add(Box.createVerticalStrut(10)); // Space between buttons
@@ -211,81 +253,99 @@ public class MainPage implements ActionListener{
         
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(15,0,20,50));
 		 
-		 /* Add content panels to frame */
+		 /* Add content pane to frame */
 		 frame.add(listPanel,BorderLayout.WEST);
 		 frame.add(buttonPanel,BorderLayout.EAST);
-		 
-		 /* Size and display the frame */
+		 /* Size and then display the frame. */
 		 frame.pack();
 		 frame.setVisible(false);
 		 
 	}
 	
 	/**
-	 * Event Handler - Processes user button clicks
+	 * actionPerformed - Handle User Actions (Button Clicks)
 	 * 
-	 * Routes user actions to appropriate feature screens:
-	 * - addTransaction: Open expense entry form
-	 * - settlePayment: Open debt payment form
-	 * - deleteTransaction: Open transaction removal tool
-	 * - checkBalances: Display balance summary
-	 * - checkAmountSpent: Show individual spending
-	 * - back: Return to groups list
-	 * - exit: Leave group (validates debt status first)
+	 * PURPOSE:
+	 * Event handler for all button clicks in the MainPage.
+	 * Routes user to appropriate screens or performs group exit.
 	 * 
-	 * @param event The action event from button click
+	 * EVENT TYPES:
+	 * 
+	 * 1. "addTransaction" - Navigate to Add Transaction screen
+	 *    - Creates AddTransaction instance
+	 *    - Disposes current frame
+	 * 
+	 * 2. "settlePayment" - Navigate to Settle Payment screen
+	 *    - Creates SettlePayment instance
+	 *    - Disposes current frame
+	 * 
+	 * 3. "deleteTransaction" - Navigate to Delete Transaction screen
+	 *    - Creates DeleteTransaction instance
+	 *    - Disposes current frame
+	 * 
+	 * 4. "checkBalances" - Navigate to Check Balances screen
+	 *    - Creates CheckBalances instance
+	 *    - Disposes current frame
+	 * 
+	 * 5. "checkAmountSpent" - Navigate to Check Amount Spent screen
+	 *    - Creates CheckAmountSpent instance
+	 *    - Disposes current frame
+	 * 
+	 * 6. "back" - Navigate back to Groups menu
+	 *    - Creates Groups instance
+	 *    - Disposes current frame
+	 * 
+	 * 7. "exit" - Attempt to exit/leave the group
+	 *    - Checks exit eligibility (must have zero balance)
+	 *    - If eligible:
+	 *      - Calls DeleteRecords() to remove user from all group tables
+	 *      - Navigates to Groups menu
+	 *    - If not eligible:
+	 *      - Displays error message: "Settle Pending Amount before exiting"
+	 *      - Changes button action command to "Unable to exit"
+	 *      - Adds error label to bottom of frame
+	 * 
+	 * EXIT ELIGIBILITY:
+	 * User can only exit if they have $0 balance with all group members.
+	 * Uses exitEligibility() method to validate.
+	 * 
+	 * @param event The ActionEvent containing the action command
 	 */
-	@Override
 	public void actionPerformed(ActionEvent event) {
 		
 		String eventName = event.getActionCommand();
 		
 		if(eventName.equals("addTransaction")) {
-			// Navigate to Add Transaction page
 			AddTransaction atransaction = new AddTransaction(uname,gcode);
 			atransaction.runGUI();
 			frame.dispose();
-			
 		} else if (eventName.equals("settlePayment")) {
-			// Navigate to Settle Payment page
 			SettlePayment sPayment = new SettlePayment(uname,gcode);
 			sPayment.runGUI();
 			frame.dispose();
-			
 		} else if(eventName.equals("deleteTransaction")) {
-			// Navigate to Delete Transaction page
 			DeleteTransaction dTransaction = new DeleteTransaction(uname,gcode);
 			dTransaction.runGUI();
 			frame.dispose();
-			
 		} else if (eventName.equals("checkBalances")) {
-			// Navigate to Check Balances page
 			CheckBalances cBalances = new CheckBalances(uname,gcode);
 			cBalances.runGUI();
 			frame.dispose();
-			
 		} else if (eventName.equals("checkAmountSpent")) {
-			// Navigate to Check Amount Spent page
 			CheckAmountSpent cAmtSpent = new CheckAmountSpent(uname,gcode);
 			cAmtSpent.runGUI();
 			frame.dispose();
-			
 		} else if (eventName.equals("back")) {
-			// Return to Groups list
 			Groups groups = new Groups(uname);
 			groups.runGUI();
 			frame.dispose();
-			
 		} else if (eventName.equals("exit")) {
-			// Attempt to exit group (validates debt status first)
 			if (exitEligibility()) {
-				// No pending debts - can exit
 				DeleteRecords();
 				Groups groups = new Groups(uname);
 				groups.runGUI();
 				frame.dispose();
 			} else {
-				// Has pending debts - cannot exit
 				JLabel displayError = new JLabel("Settle Pending Amount before exiting");
 				exitGroup.setActionCommand("Unable to exit");
 				JPanel errorPanelWrapper = new JPanel();
@@ -301,204 +361,166 @@ public class MainPage implements ActionListener{
 	}
 	
 	/**
-	 * Validates Exit Eligibility
+	 * exitEligibility - Check If User Can Exit Group
 	 * 
-	 * Checks if the user can leave the group by verifying they have no pending debts.
-	 * Users must settle all amounts they owe or are owed before exiting to prevent
-	 * unresolved financial obligations.
+	 * PURPOSE:
+	 * Validates that user has settled all debts before leaving the group.
+	 * Users cannot exit if they owe money or are owed money.
 	 * 
-	 * @return true if user has no pending debts (can exit), false otherwise
+	 * BEHAVIOR:
+	 * - Queries db6 for all payment records involving the user
+	 * - Checks records where user is Member1 (user owes others)
+	 * - Checks records where user is Member2 (others owe user)
+	 * - Returns false if ANY non-zero amount is found
+	 * - Returns true only if ALL amounts are exactly 0
+	 * 
+	 * ALGORITHM:
+	 * 1. Fetch records from db6 where user is Member1
+	 * 2. Loop through rows (skip row 0 = headers)
+	 * 3. Parse Amount column (index 2) as double
+	 * 4. If any amount != 0, return false
+	 * 5. Fetch records from db6 where user is Member2
+	 * 6. Loop through rows (skip row 0 = headers)
+	 * 7. Parse Amount column (index 2) as double
+	 * 8. If any amount != 0, return false
+	 * 9. If all amounts are 0, return true
+	 * 
+	 * DATABASE QUERIES:
+	 * - db6.[GroupCode] WHERE Member1=[username] - Debts user owes
+	 * - db6.[GroupCode] WHERE Member2=[username] - Debts owed to user
+	 * 
+	 * USAGE:
+	 * Called by actionPerformed() when user clicks "Exit Group".
+	 * Currently used: 1 call site (MainPage.actionPerformed)
+	 * 
+	 * @return true if user has zero balance with all members, false otherwise
 	 */
 	public Boolean exitEligibility() {
 		
-		File newFileU = new File("src/splitwiseapplication/PendingAmount/" + gcode);
-		ArrayList<String[]> records = Exists.contents(newFileU, ">");
+		String[][] records1 = ApiCaller.ApiCaller1("http://localhost:8080/db6/GetRowData?table="+ gcode+"&Member1="+uname);
+		String[][] records2 = ApiCaller.ApiCaller1("http://localhost:8080/db6/GetRowData?table="+ gcode+"&Member2="+uname);
 		
-		// Check all pending amount records for this user
-		for (int i = 1; i < records.size(); i++) {
-			String[] row = records.get(i);
-			// If user is involved (as debtor or creditor)
-			if (row[0].equals(uname) || row[2].equals(uname)) {
-				// Check if amount is non-zero
-				if (Double.parseDouble(row[1]) != 0) {
-					return false; // Has pending debt - cannot exit
-				}
+		for (int i = 1; i < records1.length; i++) {
+			String[] row = records1[i];
+			if (Double.parseDouble(row[2]) != 0) {
+				return false;
+			}
+		}
+
+		for (int i = 1; i < records2.length; i++) {
+			String[] row = records2[i];
+			if (Double.parseDouble(row[2]) != 0) {
+				return false;
 			}
 		}
 		
-		return true; // No pending debts - can exit
+		return true;
 		
 	}
 	
 	/**
-	 * Removes User from Group
+	 * DeleteRecords - Remove User from All Group-Related Database Tables
 	 * 
-	 * Deletes all user records from group files and logs the exit in payment history.
-	 * This is a coordinated operation that ensures clean removal from:
-	 * 1. Pending amounts file
-	 * 2. Check amount spent file
-	 * 3. Group members file
-	 * 4. Personal folders file
-	 * 5. Payment history (logs exit event)
+	 * PURPOSE:
+	 * Performs complete cleanup when user exits a group.
+	 * Removes user's records from all relevant tables and updates group totals.
+	 * Also records the exit event in transaction history.
+	 * 
+	 * BEHAVIOR:
+	 * Executes 9 database operations in specific order:
+	 * 
+	 * 1. db6: DELETE rows where Member1 = username
+	 *    - Removes debts user owes to others
+	 * 
+	 * 2. db6: DELETE rows where Member2 = username
+	 *    - Removes debts others owe to user
+	 * 
+	 * 3. db1: GET user's current balance amount
+	 *    - Retrieves Amount WHERE Name = username
+	 * 
+	 * 4. db1: GET group's total balance
+	 *    - Retrieves Amount WHERE Name = 'Total'
+	 * 
+	 * 5. db1: UPDATE Total balance
+	 *    - Sets Total = Total - User's Amount
+	 *    - Maintains accurate group total after user leaves
+	 * 
+	 * 6. db1: DELETE user's balance record
+	 *    - Removes WHERE Name = username
+	 * 
+	 * 7. db4: DELETE user from members table
+	 *    - Removes WHERE name = username
+	 * 
+	 * 8. db7: DELETE group from user's group list
+	 *    - Removes WHERE GroupID = group code
+	 *    - Updates user's personal group list
+	 * 
+	 * 9. db5: INSERT exit transaction record
+	 *    - INSERT (payee, amount, reason, TType, tid)
+	 *    - VALUES (username, 0, 'left', 2, 'NA')
+	 *    - TType=2 indicates "left group" event
+	 *    - Visible in transaction history as "[User] left the group"
+	 * 
+	 * 10. db8: DROP user's column from expense tracking
+	 *     - ALTER TABLE DROP COLUMN username
+	 *     - Removes expense tracking for this user
+	 * 
+	 * CRITICAL ORDER:
+	 * Must fetch balance amounts BEFORE deleting records.
+	 * Must update Total BEFORE deleting user's balance.
+	 * 
+	 * USAGE:
+	 * Called by actionPerformed() when exit is confirmed and eligible.
+	 * Currently used: 1 call site (MainPage.actionPerformed)
+	 * 
+	 * NOTE:
+	 * The return value 'val' from ApiCaller2() is unused - operations are
+	 * fire-and-forget HTTP requests to the backend API.
 	 */
 	public void DeleteRecords() {
 		
-		DeletePA();  // Remove from pending amounts
-		DeleteCAS(); // Remove from amount spent tracking
-		DeleteGrp(); // Remove from group members list
-		DeletePF();  // Remove group from personal folder
-		
-		// Log exit event in payment history
-		File newFile = new File("src/splitwiseapplication/PaymentHistory/"+gcode);
-		String[] data = {uname,"","","2"}; // Type 2 = user left group
-		UpdateFile.Update(data,newFile,">");
-		
-	}
-	
-	/**
-	 * Removes User from Pending Amounts File
-	 * 
-	 * Deletes all pending amount records where this user is involved
-	 * (either as debtor or creditor). Preserves header row and all
-	 * unrelated records.
-	 */
-	public void DeletePA() {
-		
-		File newFilePA = new File("src/splitwiseapplication/PendingAmount/" + gcode);
-		ArrayList<String[]> optionsPA = Exists.contents(newFilePA, ">");
-		
-		if (optionsPA.isEmpty()) {
-			return; // Safety check - no data to process
-		}
-		
-		// Rewrite file starting with header row
-		UpdateFile.Write(optionsPA.get(0)[0], optionsPA.get(0)[1], optionsPA.get(0)[2], newFilePA);
-		
-		// Add back only records not involving this user
-		for (int i = 1; i < optionsPA.size(); i++) {
-			String[] row = optionsPA.get(i);
-			if (!(row[0].equals(uname) || row[2].equals(uname))) {
-				UpdateFile.Update(optionsPA.get(i)[0], optionsPA.get(i)[1], optionsPA.get(i)[2], newFilePA);
-			}
-		}
+		String val = ApiCaller.ApiCaller2("http://localhost:8080/db6/DeleteRowData?table="+ gcode+"&Member1="+uname);
+		val = ApiCaller.ApiCaller2("http://localhost:8080/db6/DeleteRowData?table="+ gcode+"&Member2="+uname);
+		String[] amountp = ApiCaller.ApiCaller3("http://localhost:8080/db1/GetSpecificData?val=Amount&table="+ gcode+"&Name="+uname);
+		String[] amountt = ApiCaller.ApiCaller3("http://localhost:8080/db1/GetSpecificData?val=Amount&table="+ gcode+"&Name=Total");
+		val = ApiCaller.ApiCaller2("http://localhost:8080/db1/UpdateData?table=" + gcode + "&where=Name='Total'&Amount="+ (Double.parseDouble(amountt[0]) - Double.parseDouble(amountp[0])));
+		val = ApiCaller.ApiCaller2("http://localhost:8080/db1/DeleteRowData?table="+ gcode+"&Name="+uname);
+		val = ApiCaller.ApiCaller2("http://localhost:8080/db1/DeleteRowData?table="+ gcode+"&Name="+uname);
+		val = ApiCaller.ApiCaller2("http://localhost:8080/db4/DeleteRowData?table="+ gcode+"&name="+uname);
+		val = ApiCaller.ApiCaller2("http://localhost:8080/db7/DeleteRowData?table="+ uname+"&GroupID="+gcode);
+		val = ApiCaller.ApiCaller2("http://localhost:8080/db5/InsertData?table="+ gcode +"&params=(payee,amount,reason,Ttype,tid)&info=('" + uname + "'," + 0 + ",'left'," + 2 + ",'NA')");
+		val = ApiCaller.ApiCaller2("http://localhost:8080/db8/DeleteColumn?table="+ gcode+"&uname="+uname);
 		
 	}
 	
 	/**
-	 * Removes User from Amount Spent Tracking File
+	 * runGUI - Display the MainPage Window
 	 * 
-	 * Deletes the user's spending record from the Check Amount Spent file.
-	 * Preserves header row and other users' spending data.
-	 */
-	public void DeleteCAS() {
-		
-		File newFileCAS = new File("src/splitwiseapplication/CheckAmountSpentFolder/" + gcode);
-		ArrayList<String[]> optionsCAS = Exists.contents(newFileCAS, ",");
-		
-		if (optionsCAS.isEmpty()) {
-			return; // Safety check - no data to process
-		}
-		
-		// Rewrite file starting with header row
-		UpdateFile.Write(optionsCAS.get(0)[0], optionsCAS.get(0)[1], newFileCAS);
-		
-		// Add back only records not belonging to this user
-		for (int i = 1; i < optionsCAS.size(); i++) {
-			String[] row = optionsCAS.get(i);
-			if (!(row[0].equals(uname))) {
-				UpdateFile.Update(optionsCAS.get(i)[0], optionsCAS.get(i)[1], newFileCAS);
-			}
-		}
-		
-	}
-	
-	/**
-	 * Removes User from Group Members List
+	 * PURPOSE:
+	 * Makes the MainPage frame visible to the user.
+	 * Final step in showing the group dashboard.
 	 * 
-	 * Deletes the username from the group's members file.
-	 * Preserves all other members in the group.
-	 */
-	public void DeleteGrp() {
-		
-		File newFileGrp = new File("src/splitwiseapplication/Groups/" + gcode);
-		ArrayList<String> optionsGrp = Exists.contents_STR(newFileGrp);
-		
-		if (optionsGrp.isEmpty()) {
-			return; // Safety check - no data to process
-		}
-		
-		String row = optionsGrp.get(0);
-		
-		// Rewrite file, excluding this user
-		if (!(row.equals(uname))) {
-			UpdateFile.Write(row, newFileGrp);
-		}
-		
-		// Add back remaining members (except this user)
-		for (int i = 1; i < optionsGrp.size(); i++) {
-			row = optionsGrp.get(i);
-			if (!(row.equals(uname))) {
-				UpdateFile.Update(optionsGrp.get(i), newFileGrp);
-			}
-		}
-		
-	}
-	
-	/**
-	 * Removes Group from User's Personal Folder
+	 * BEHAVIOR:
+	 * - Enables default window decorations (title bar, close button, etc.)
+	 * - Makes the instance frame visible
 	 * 
-	 * Deletes the group name from the user's personal groups list.
-	 * This removes the group from the user's view while preserving
-	 * it for remaining members.
-	 */
-	public void DeletePF() {
-		
-		// First, find the group name from the group code
-		File newFileGrp = new File("src/splitwiseapplication/groups.txt");
-		ArrayList<String[]> optionsGrp = Exists.contents(newFileGrp, ",");
-		String gName = "";
-		
-		for (int i = 0; i < optionsGrp.size(); i++) {
-			String[] row = optionsGrp.get(i);
-			if ((row[0].equals(gcode))) {
-				gName = row[1]; // Found group name
-			}
-		}
-		
-		// Now remove group from user's personal folder
-		File newFilePF = new File("src/splitwiseapplication/Personal_Folders/" + uname);
-		ArrayList<String> optionsPF = Exists.contents_STR(newFilePF);
-		
-		if (optionsPF.isEmpty()) {
-			return; // Safety check - no data to process
-		}
-		
-		String row = optionsPF.get(0);
-		
-		// If first row is the group we're removing, start with blank file
-		if (!(row.equals(gName))) {
-			UpdateFile.Write(row, newFilePF);
-		} else {
-			UpdateFile.WriteBlank(newFilePF);
-		}
-		
-		// Add back all other groups
-		for (int i = 1; i < optionsPF.size(); i++) {
-			row = optionsPF.get(i);
-			if (!(row.equals(gName))) {
-				UpdateFile.Update(optionsPF.get(i), newFilePF);
-			}
-		}
-		
-	}
-
-	/**
-	 * Display the Main Page GUI
+	 * DESIGN PATTERN:
+	 * Follows the two-step initialization pattern used throughout the app:
+	 * 1. Constructor builds the UI (but keeps frame invisible)
+	 * 2. runGUI() displays the frame
 	 * 
-	 * Makes the main page frame visible to the user.
-	 * Should be called after constructing a MainPage object.
+	 * This separation allows for UI setup before display.
+	 * 
+	 * INSTANCE METHOD:
+	 * Called on MainPage instance to display its frame.
+	 * 
+	 * USAGE:
+	 * Called by multiple screens after creating MainPage instance.
+	 * Currently used: 9 call sites (EnterGroup, JoinGroup, CreateGroup,
+	 * AddTransaction, SettlePayment, DeleteTransaction, CheckBalances,
+	 * CheckAmountSpent, AmountSettled)
 	 */
-	public static void runGUI() {
+	public void runGUI() {
 		 
 		JFrame.setDefaultLookAndFeelDecorated(true);
 		frame.setVisible(true);

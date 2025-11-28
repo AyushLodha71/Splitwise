@@ -3,248 +3,265 @@ package splitwiseapplication;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import javax.swing.*;
 
 /**
- * EnterGroup - Group Selection Interface
+ * EnterGroup - Group Selection Screen for Entering Existing Groups
  * 
- * This class provides a GUI for users to select and enter one of their existing groups.
- * It displays a dropdown list of all groups the user belongs to, allowing them to:
- * - View all their groups in a sorted list
- * - Select a group from the dropdown
- * - Enter the selected group to view transactions and perform actions
- * - Navigate back to the main groups page
+ * PURPOSE:
+ * Provides a GUI screen where users can select one of their existing groups
+ * and enter it to view group details, transactions, and balances.
+ * This is the navigation point between the Groups menu and the MainPage.
  * 
- * The interface dynamically updates to show an "Enter [GroupName] Group" button
- * once a group is selected from the dropdown.
+ * FUNCTIONALITY:
+ * - Displays a dropdown list of all groups the user belongs to
+ * - Retrieves group list from database (db7 - user's group memberships)
+ * - Allows user to select a group and confirm entry
+ * - Fetches the group code for the selected group
+ * - Navigates to MainPage with the selected group's code
+ * - Provides back navigation to Groups menu
  * 
- * Groups are loaded from the user's personal folder and displayed in alphabetical order.
+ * USER FLOW:
+ * 1. User sees dropdown with "Select Group" and their group names
+ * 2. User selects a group from dropdown
+ * 3. "Enter [GroupName] Group" button appears
+ * 4. User clicks button to enter the group
+ * 5. Application navigates to MainPage for that specific group
  * 
- * @version 2.0 - Enhanced with comprehensive documentation and improved UX
+ * NAVIGATION:
+ * - Entry Point: Groups.java (when user selects "Enter Group")
+ * - Exit Points: 
+ *   - MainPage.java (when entering a group)
+ *   - Groups.java (when clicking Back)
+ * 
+ * DATABASE INTERACTIONS:
+ * - db7: Fetches user's group memberships (username table)
+ * - db3.GroupNames: Fetches group_code for selected group name
+ * 
+ * UI COMPONENTS:
+ * - JComboBox for group selection dropdown
+ * - JButton for "Back" navigation
+ * - JButton for "Enter [GroupName] Group" (appears after selection)
+ * - GridLayout with 3 columns
+ * 
+ * DESIGN PATTERN:
+ * - Implements ActionListener for event handling
+ * - Static frame pattern (single shared JFrame instance)
+ * - Constructor builds UI, runGUI() displays it
+ * 
+ * @author Original Development Team
  */
 public class EnterGroup implements ActionListener{
 
-	// Main application frame
 	static JFrame frame;
-	
-	// UI container panel
 	JPanel contentPane;
-	
-	// Dropdown list for group selection
-	JLabel optionsPrompt;
 	JComboBox options;
-	
-	// Navigation and action buttons
 	JButton backButton, groupEnter;
-	
-	// List of user's groups loaded from personal folder
 	ArrayList<String> groups = new ArrayList<String>();
-	
-	// Current username
 	String uname;
-	
-	// Selected group code for entering
-	String rcode = "";
+	String[] rcode;
 	
 	/**
-	 * Constructor - Builds the Group Selection Interface
+	 * Constructor - Initialize EnterGroup GUI
 	 * 
-	 * Creates a dropdown list populated with the user's groups and provides
-	 * navigation options:
-	 * 1. Loads user's groups from personal folder (sorted alphabetically)
-	 * 2. Creates dropdown with "Select Group" as default option
-	 * 3. Dynamically displays "Enter [GroupName] Group" button when selection changes
+	 * PURPOSE:
+	 * Creates the group selection interface for a specific user.
+	 * Builds all UI components and retrieves user's group list from database.
 	 * 
-	 * @param username The logged-in user's username
+	 * BEHAVIOR:
+	 * - Creates new JFrame with title "Splitwise - Enter Group"
+	 * - Sets up GridLayout with 3 columns
+	 * - Fetches user's groups via Read() method (db7 query)
+	 * - Populates dropdown with "Select Group" + all user groups
+	 * - Creates Back button for navigation
+	 * - Configures frame but keeps it invisible (runGUI() displays it)
+	 * 
+	 * UI LAYOUT:
+	 * Initially shows only:
+	 * [Dropdown] [Back Button] [Empty]
+	 * 
+	 * After group selection:
+	 * [Dropdown] [Back Button] [Enter GroupName Button]
+	 * 
+	 * @param username The username of the logged-in user
 	 */
 	public EnterGroup(String username) {
 		
 		uname = username;
-		
-		/* Setup main frame */
 		frame = new JFrame("Splitwise - Enter Group");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
-		/* Create content pane with 3-column grid layout */
+		/* Create a content pane */
 		contentPane = new JPanel();
 		contentPane.setLayout(new GridLayout(0, 3, 10, 5));
 		contentPane.setBorder(BorderFactory.createEmptyBorder(20,50,20,50));
 		 
-		/* Create and populate group selection dropdown */
 		options = new JComboBox();
-		options.setToolTipText("Select a group to enter");
 		groups = Read(username);
-		groups.add(0, "Select Group" ); // Add placeholder at top
+		groups.add(0, "Select Group" );
 		for (int i = 0; i < groups.size(); i++) {
 			options.addItem(groups.get(i));
 		}
 		
-		// Listen for group selection changes
 		options.addActionListener(this);
-		options.setActionCommand("First"); // First selection creates Enter button
+		options.setActionCommand("First");
 		contentPane.add(options);
 		
-		/* Back button - return to groups page */
 		backButton = new JButton("Back");
-		backButton.setToolTipText("Return to groups page");
 		backButton.addActionListener(this);
 		backButton.setActionCommand("Back");
 		contentPane.add(backButton);
 		
-		/* Finalize frame setup */
 		frame.setContentPane(contentPane);
+		/* Size and then display the frame. */
 		frame.pack();
 		frame.setVisible(false);
 		
 	}
 
 	/**
-	 * Reads User's Group List from Personal Folder
+	 * Read - Fetch User's Group List from Database
 	 * 
-	 * Loads all group names that the user belongs to from their personal folder file.
-	 * Groups are sorted alphabetically using merge sort before being returned.
+	 * PURPOSE:
+	 * Retrieves all group names that the specified user belongs to.
+	 * Queries the database for user's group memberships.
 	 * 
-	 * @param usrname The username whose groups to load
-	 * @return Sorted list of group names the user belongs to
+	 * BEHAVIOR:
+	 * - Queries db7 database with username as table name
+	 * - Extracts group names from column index 1 of returned data
+	 * - Skips row 0 (assumed to be headers)
+	 * - Returns ArrayList of group names
+	 * 
+	 * DATABASE QUERY:
+	 * API: GET http://localhost:8080/db7/GetRowData?table=[username]
+	 * Response: 2D String array where each row contains group information
+	 * Column 1 (index [i][1]): Group name
+	 * 
+	 * ALGORITHM:
+	 * 1. Call ApiCaller1 to get all rows for user
+	 * 2. Loop through rows starting from index 1 (skip header row)
+	 * 3. Extract group name from column 1
+	 * 4. Add to ArrayList
+	 * 5. Return completed list
+	 * 
+	 * USAGE:
+	 * Called by constructor to populate the dropdown menu.
+	 * Currently used: 1 call site (EnterGroup constructor)
+	 * 
+	 * @param usrname The username whose groups should be retrieved
+	 * @return ArrayList of group names the user belongs to
 	 */
 	public static ArrayList<String> Read(String usrname) {
 			
-			String usrnme;
-			File textFile;
-			ArrayList<String> grouplist = new ArrayList<>();
+		String[][] lst = ApiCaller.ApiCaller1("http://localhost:8080/db7/GetRowData?table="+ usrname);
+		ArrayList<String> values = new ArrayList<String>();
 			
-			// Load groups from user's personal folder
-			textFile = new File("src/splitwiseapplication/Personal_Folders/"+usrname);
-			
-			try (FileReader in = new FileReader(textFile);
-			     BufferedReader readFile = new BufferedReader(in)) {
-				while ((usrnme = readFile.readLine()) != null ) {
-					String[] myArray = usrnme.split(",");
-					grouplist.add(myArray[0]); // Group name is first element
-				}
-			} catch (FileNotFoundException e) {
-				System.err.println("FileNotFoundException: "
-						+ e.getMessage());
-			} catch (IOException e) {
-				System.err.println("IOException: " + e.getMessage());
+			for (int i = 1; i < lst.length; i++) {
+				values.add(lst[i][1]);
 			}
 			
-			// Sort groups alphabetically for easier navigation
-			Sorts.mergesort(grouplist, 0, grouplist.size()-1);
-			
-			return grouplist;
+			return values;
 			
 		}
 	
 	/**
-	 * Event Handler - Processes user interactions
+	 * actionPerformed - Handle User Actions (Button Clicks, Dropdown Selection)
 	 * 
-	 * Handles four types of actions:
-	 * 1. Back - Returns to main groups page
-	 * 2. First - Initial group selection, creates "Enter Group" button
-	 * 3. Later - Subsequent group selections, updates button text
-	 * 4. Enter - Enters the selected group's main page
+	 * PURPOSE:
+	 * Event handler for all user interactions in the EnterGroup screen.
+	 * Manages navigation, group selection, and entry confirmation.
 	 * 
-	 * The interface dynamically updates the Enter button text based on
-	 * the currently selected group.
+	 * EVENT TYPES:
 	 * 
-	 * @param event The action event from user interaction
+	 * 1. "Back" - Navigate back to Groups menu
+	 *    - Creates new Groups instance
+	 *    - Shows Groups screen
+	 *    - Disposes current frame
+	 * 
+	 * 2. "First" - Initial group selection from dropdown
+	 *    - Gets selected group name from dropdown
+	 *    - Fetches group_code from db3.GroupNames table
+	 *    - Creates "Enter [GroupName] Group" button
+	 *    - Adds button to UI
+	 *    - Changes dropdown action command to "Later" (for subsequent selections)
+	 * 
+	 * 3. "Later" - Subsequent group selections (after first selection)
+	 *    - Gets newly selected group name
+	 *    - Fetches updated group_code from database
+	 *    - Updates button text to match new selection
+	 *    - Doesn't recreate button (just updates text)
+	 * 
+	 * 4. "Enter" - Confirm entry into selected group
+	 *    - Creates MainPage with username and group code
+	 *    - Shows MainPage screen
+	 *    - Disposes current frame
+	 * 
+	 * DATABASE QUERIES:
+	 * - db3.GroupNames: Fetches group_code for selected group name
+	 * 
+	 * DESIGN PATTERN:
+	 * Uses action command strings to differentiate button/dropdown events.
+	 * "First" vs "Later" distinction prevents creating duplicate Enter buttons.
+	 * 
+	 * @param event The ActionEvent containing the action command
 	 */
-	@Override
 	public void actionPerformed(ActionEvent event) {
 		
 		String eventName = event.getActionCommand();
-		String selectedItem;
+		String selectedItem = "";
 		
-		if ("Back".equals(eventName)) {
-			// Navigate back to groups page
-			Groups groupsPage = new Groups(uname);
-			groupsPage.runGUI();
+		if (eventName.equals("Back") == true) {
+			Groups groups = new Groups(uname);
+			groups.runGUI();
 			frame.dispose();
-			
-		} else if ("First".equals(eventName)){
-			// First group selection - create Enter button
+		} else if (eventName.equals("First") == true){
 			selectedItem = (String) options.getSelectedItem();
-			rcode = RetrieveCode(selectedItem);
-			
+			rcode = ApiCaller.ApiCaller3("http://localhost:8080/db3/GetSpecificData?val=group_code&table=GroupNames&group_name=" + selectedItem);
 			groupEnter = new JButton("Enter " + selectedItem + " Group");
-			groupEnter.setToolTipText("Click to enter " + selectedItem);
 			groupEnter.addActionListener(this);
 			groupEnter.setActionCommand("Enter");
 			contentPane.add(groupEnter);
-			
-			// Change action command for subsequent selections
 			options.setActionCommand("Later");
 			frame.setContentPane(contentPane);
 			frame.pack();
-			
-		} else if ("Later".equals(eventName)) {
-			// Subsequent group selection - update button text
+		} else if (eventName.equals("Later") == true) {
 			selectedItem = (String) options.getSelectedItem();
-			rcode = RetrieveCode(selectedItem);
+			rcode = ApiCaller.ApiCaller3("http://localhost:8080/db3/GetSpecificData?val=group_code&table=GroupNames&group_name=" + selectedItem);
 			groupEnter.setText("Enter " + selectedItem + " Group");
-			groupEnter.setToolTipText("Click to enter " + selectedItem);
-			
-		} else if("Enter".equals(eventName)) {
-			// Enter the selected group
-			MainPage mpage = new MainPage(uname,rcode);
+		} else if(eventName.equals("Enter") == true) {
+			MainPage mpage = new MainPage(uname,rcode[0]);
 			mpage.runGUI();
 			frame.dispose();
 		}
 		
 	}
-	
-	/**
-	 * Retrieves Group Code from Group Name
-	 * 
-	 * Searches the groups.txt file to find the unique group code
-	 * associated with a given group name. The group code is used
-	 * to access group-specific data files.
-	 * 
-	 * File format: groupCode,groupName
-	 * 
-	 * @param n The group name to look up
-	 * @return The group code corresponding to the group name
-	 */
-	public static String RetrieveCode(String n) {
-		
-		String line;
-		File textFile;
-		
-		textFile = new File("src/splitwiseapplication/groups.txt");
-		
-		try (FileReader in = new FileReader(textFile);
-		     BufferedReader readFile = new BufferedReader(in)) {
-			while ((line = readFile.readLine()) != null ) {
-				String[] myArray = line.split(",");
-				if (myArray[1].equals(n)) {
-					return myArray[0]; // Return the group code
-				}
-			}
-		} catch (FileNotFoundException e) {
-			System.err.println("FileNotFoundException: "
-					+ e.getMessage());
-		} catch (IOException e) {
-			System.err.println("IOException: " + e.getMessage());
-		}
-		
-		return (n); // Fallback: return the name itself if not found
-		
-	}
 
 	/**
-	 * Display the Enter Group GUI
+	 * runGUI - Display the EnterGroup Window
 	 * 
-	 * Makes the group selection frame visible to the user.
-	 * Should be called after constructing an EnterGroup object.
+	 * PURPOSE:
+	 * Makes the EnterGroup frame visible to the user.
+	 * Final step in showing the group selection interface.
+	 * 
+	 * BEHAVIOR:
+	 * - Enables default window decorations (title bar, close button, etc.)
+	 * - Makes the instance frame visible
+	 * 
+	 * DESIGN PATTERN:
+	 * Follows the two-step initialization pattern used throughout the app:
+	 * 1. Constructor builds the UI (but keeps frame invisible)
+	 * 2. runGUI() displays the frame
+	 * 
+	 * This separation allows for UI setup before display.
+	 * 
+	 * INSTANCE METHOD:
+	 * Called on EnterGroup instance to display its frame.
+	 * 
+	 * USAGE:
+	 * Called by Groups.java after creating EnterGroup instance.
+	 * Currently used: 1 call site (Groups.actionPerformed)
 	 */
-	public static void runGUI() {
+	public void runGUI() {
 		 
 		JFrame.setDefaultLookAndFeelDecorated(true);
 		frame.setVisible(true);

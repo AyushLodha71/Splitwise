@@ -3,143 +3,201 @@ package splitwiseapplication;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import javax.swing.*;
 
 /**
- * JoinGroup - Group Invitation Interface
+ * JoinGroup - Screen for Joining Existing Groups Using Group Code
  * 
- * This class allows users to join existing groups using an invitation code.
- * The process involves:
- * 1. User enters a 7-character group code (received from group creator/member)
- * 2. System validates the code exists and user isn't already a member
- * 3. If valid, adds user to group and initializes their balance records
- * 4. Displays success message and provides button to enter the joined group
+ * PURPOSE:
+ * Provides a GUI interface where users can join existing groups by entering
+ * a group code. Validates the code and adds the user to all relevant database
+ * tables for the group.
  * 
- * The interface handles validation errors such as:
- * - Invalid/non-existent group codes
- * - Attempting to join a group the user is already in
+ * FUNCTIONALITY:
+ * - Accepts group code input from user
+ * - Validates that:
+ *   1. The group code exists in the system
+ *   2. The user is not already a member of that group
+ * - Adds user to group across multiple databases (db1, db4, db6, db7, db8)
+ * - Sets up permissions and relationships with existing group members
+ * - Allows immediate entry into the newly joined group
+ * - Provides back navigation to Groups menu
  * 
- * @version 2.0 - Enhanced with comprehensive documentation and improved UX
+ * USER FLOW:
+ * 1. User enters a group code in text field
+ * 2. User presses Enter to submit
+ * 3. System validates code
+ * 4. If valid: Shows "Success!" message and "Enter" button
+ * 5. If invalid: Shows "Wrong Code" error
+ * 6. User can click Enter to go to MainPage or Back to return
+ * 
+ * VALIDATION LOGIC:
+ * - Group code must exist in db3.GroupNames
+ * - User must NOT already be in db4.[GroupCode] table
+ * - Uses Exists.exist() for both checks
+ * 
+ * DATABASE OPERATIONS (AddNewUser):
+ * When user joins a group, the system:
+ * - db4: Adds user to group members table
+ * - db8: Creates new column for user in expense tracking
+ * - db8: Initializes user's balance to 0
+ * - db7: Adds group entry to user's group list
+ * - db1: Creates initial balance record (0) for user in group
+ * - db6: Sets up payment permissions with all existing members
+ * 
+ * NAVIGATION:
+ * - Entry Point: Groups.java (when user selects "Join Group")
+ * - Exit Points:
+ *   - MainPage.java (when entering newly joined group)
+ *   - Groups.java (when clicking Back)
+ * 
+ * UI COMPONENTS:
+ * - JTextField for group code input
+ * - JButton for Back navigation
+ * - JLabel for success/error messages
+ * - JButton for Enter (appears after successful join)
+ * - GridLayout with 3 columns
+ * 
+ * DESIGN PATTERN:
+ * - Implements ActionListener for event handling
+ * - Static frame pattern (single shared JFrame instance)
+ * - Constructor builds UI, runGUI() displays it
+ * 
+ * @author Original Development Team
  */
 public class JoinGroup implements ActionListener {
 
-	// Main application frame
 	static JFrame frame;
-	
-	// UI container panel
 	JPanel contentPane;
-	
-	// UI labels for prompts and status messages
 	JLabel joinPrompt, success;
-	
-	// Text field for entering group code
 	JTextField joinCode;
-	
-	// Action buttons
 	JButton enterButton,backButton;
-	
-	// List of user's groups (not currently used)
 	ArrayList<String> groups = new ArrayList<String>();
-	
-	// Current username (static for access by helper methods)
 	static String uname;
 	
 	/**
-	 * Constructor - Builds the Join Group Interface
+	 * Constructor - Initialize JoinGroup GUI
 	 * 
-	 * Creates a simple form with:
-	 * - A text field for entering the group code
-	 * - Enter key support for quick submission
-	 * - Back button to return to groups page
+	 * PURPOSE:
+	 * Creates the group joining interface for a specific user.
+	 * Builds a simple form with text field for entering group code.
 	 * 
-	 * After successful join, displays success message and
-	 * provides an "Enter" button to immediately access the joined group.
+	 * BEHAVIOR:
+	 * - Creates new JFrame with title "Splitwise - Join Group"
+	 * - Sets up GridLayout with 3 columns
+	 * - Creates label prompting for group code
+	 * - Creates text field for code input (Enter key submits)
+	 * - Creates Back button for navigation
+	 * - Configures frame but keeps it invisible (runGUI() displays it)
 	 * 
-	 * @param username The logged-in user's username
+	 * UI LAYOUT:
+	 * Initially shows:
+	 * [Label: "Enter the group code to join"] [TextField] [Back Button]
+	 * 
+	 * After valid code submission:
+	 * [Label] [TextField] [Back Button]
+	 * [Success!] [Enter Button] [Empty]
+	 * 
+	 * After invalid code:
+	 * [Label] [TextField] [Back Button]
+	 * [Wrong Code] [Empty] [Empty]
+	 * 
+	 * @param username The username of the logged-in user attempting to join a group
 	 */
 	public JoinGroup(String username) {
 		
 		uname = username;
 		
-		 /* Setup main frame */
+		 /* Create and set up the frame */
 		 frame = new JFrame("Splitwise - Join Group");
 		 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		 
-		 /* Create content pane with 3-column grid layout */
+		 /* Create a content pane */
 		 contentPane = new JPanel();
 		 contentPane.setLayout(new GridLayout(0, 3, 10, 5));
 		 contentPane.setBorder(BorderFactory.createEmptyBorder(20,50,20,50));
-		 
-		 /* Add prompt label */
+		 /* Create and add label */
 		 joinPrompt = new JLabel("Enter the group code to join");
 		 contentPane.add(joinPrompt);
-		 
-		 /* Group code input field with Enter key support */
 		 joinCode = new JTextField();
-		 joinCode.setToolTipText("Enter the 7-character group code");
 		 joinCode.addActionListener(this);
-		 joinCode.setActionCommand("Join Group"); // Pressing Enter attempts to join
+		 joinCode.setActionCommand("Join Group");
 		 contentPane.add(joinCode);
 		 
-		 /* Back button - return to groups page */
 		 backButton = new JButton("Back");
-		 backButton.setToolTipText("Return to groups page");
 		 backButton.addActionListener(this);
 		 backButton.setActionCommand("Back");
 		 contentPane.add(backButton);
 		 
-		 /* Finalize frame setup */
+		 /* Add content pane to frame */
 		 frame.setContentPane(contentPane);
+		 /* Size and then display the frame. */
 		 frame.pack();
 		 frame.setVisible(false);
 	
 	}
 	
 	/**
-	 * Event Handler - Processes user actions
+	 * actionPerformed - Handle User Actions (Text Field Enter, Button Clicks)
 	 * 
-	 * Handles three states:
-	 * 1. "Join Group" - Validates code and adds user to group if valid
-	 * 2. "Enter" - Enters the newly joined group
-	 * 3. "Back" - Returns to groups page without joining
+	 * PURPOSE:
+	 * Event handler for all user interactions in the JoinGroup screen.
+	 * Manages code validation, group joining, and navigation.
 	 * 
-	 * Validation checks:
-	 * - Group code must exist
-	 * - User must not already be a member
+	 * EVENT TYPES:
 	 * 
-	 * @param event The action event from user interaction
+	 * 1. "Enter" - Navigate to the newly joined group
+	 *    - Gets group code from text field
+	 *    - Creates MainPage with username and group code
+	 *    - Shows MainPage screen
+	 *    - Disposes current frame
+	 * 
+	 * 2. "Join Group" - Validate and join group (triggered by Enter key in text field)
+	 *    - Gets group code from text field
+	 *    - Validates code using two checks:
+	 *      a) Group exists: db3.GroupNames contains the code
+	 *      b) Not already member: db4.[GroupCode] doesn't contain username
+	 *    - If valid:
+	 *      - Calls AddNewUser() to add user to all group tables
+	 *      - Shows "Success!" label
+	 *      - Creates "Enter" button to join the group
+	 *      - Changes text field action to "Group Joined" (prevents resubmission)
+	 *    - If invalid:
+	 *      - Shows "Wrong Code" error label
+	 * 
+	 * 3. "Back" - Navigate back to Groups menu
+	 *    - Creates new Groups instance
+	 *    - Shows Groups screen
+	 *    - Disposes current frame
+	 * 
+	 * VALIDATION QUERIES:
+	 * - db3.GroupNames: Check if group code exists
+	 * - db4.[GroupCode]: Check if user already member
+	 * 
+	 * ERROR HANDLING:
+	 * Shows "Wrong Code" if:
+	 * - Group code doesn't exist
+	 * - User is already a member of that group
+	 * 
+	 * @param event The ActionEvent containing the action command
 	 */
-	@Override
 	public void actionPerformed(ActionEvent event) {
 		
 		String eventName = event.getActionCommand();
 		
-		if ("Enter".equals(eventName)) {
-			// Enter the newly joined group
+		if (eventName.equals("Enter") == true) {
 			String code = joinCode.getText();
 			MainPage mpage = new MainPage(uname,code);
 			mpage.runGUI();
 			frame.dispose();
-			
-		} else if ("Join Group".equals(eventName)){
-			// Attempt to join group with entered code
+		} else if ((eventName.equals("Join Group") == true)){
 			String code = joinCode.getText();
-			File groupFile = new File("src/splitwiseapplication/Groups/"+code);
 			
-			// Validate: group exists AND user not already a member
-			if (checkExistence(code) && Exists.exist(uname,groupFile)==false) {
-				// Valid - add user to group
+			if (Exists.exist("http://localhost:8080/db3/GetRowData?table=GroupNames&group_code=" + code) && Exists.exist("http://localhost:8080/db4/GetRowData?table="+code+"&name="+uname) == false) {
 				AddNewUser(code,uname);
 				success = new JLabel("Success!");
 				enterButton = new JButton("Enter");
-				enterButton.setToolTipText("Enter the group you just joined");
-				joinCode.setActionCommand("Group Joined"); // Prevent duplicate joins
+				joinCode.setActionCommand("Group Joined");
 				enterButton.addActionListener(this);
 				enterButton.setActionCommand("Enter");
 				contentPane.add(success);
@@ -147,139 +205,155 @@ public class JoinGroup implements ActionListener {
 				frame.setContentPane(contentPane);
 				frame.pack();
 			} else {
-				// Invalid - show error
-				JLabel displayError = new JLabel("Wrong Code or Already a Member");
+				JLabel displayError = new JLabel("Wrong Code");
 				contentPane.add(displayError);
 				frame.setContentPane(contentPane);
 				frame.pack();
 			}
-			
-		} else if ("Back".equals(eventName)) {
-			// Return to groups page without joining
-			Groups groupsPage = new Groups(uname);
-			groupsPage.runGUI();
+		} else if (eventName.equals("Back") == true) {
+			Groups groups = new Groups(uname);
+			groups.runGUI();
 			frame.dispose();
 		}
 		
 	}
-	
-	/**
-	 * Checks if Group Code Exists
-	 * 
-	 * Validates whether a group file exists for the given code.
-	 * 
-	 * @param ucode The group code to check
-	 * @return true if group exists, false otherwise
-	 */
-	public static boolean checkExistence(String ucode) {
-		
-		File textFile;
-		
-		textFile = new File("src/splitwiseapplication/Groups/"+ucode);
-		
-		return textFile.exists();
-		
-	}
 
 	/**
-	 * Adds New User to Existing Group
+	 * AddNewUser - Add User to All Group-Related Database Tables
 	 * 
-	 * Performs complete user onboarding to a group:
-	 * 1. Adds user to group's member list
-	 * 2. Adds group to user's personal folder
-	 * 3. Initializes user's spending to $0
-	 * 4. Creates pending amount records with all existing members
+	 * PURPOSE:
+	 * Performs all necessary database operations to fully integrate a new user
+	 * into an existing group. Updates multiple databases to track memberships,
+	 * balances, and permissions.
 	 * 
-	 * @param code The group code to join
-	 * @param usrname The username of the joining user
+	 * BEHAVIOR:
+	 * Executes a series of database operations in specific order:
+	 * 
+	 * 1. AddPerms(code) - Set up payment permissions with existing members
+	 * 2. db4: Add user to group members table
+	 * 3. Fetch group name from db3 for user's group list
+	 * 4. db8: Add column for user in expense tracking table
+	 * 5. db8: Initialize all expense values to 0 for new user
+	 * 6. db7: Add group to user's personal group list
+	 * 7. db1: Create initial balance record (0) for user in group
+	 * 
+	 * DATABASE OPERATIONS DETAIL:
+	 * - db4.[GroupCode]: INSERT (name) VALUES (username) - Add to members
+	 * - db3.GroupNames: SELECT group_name WHERE group_code = code - Get name
+	 * - db8.[GroupCode]: ALTER TABLE ADD COLUMN username - Track expenses
+	 * - db8.[GroupCode]: UPDATE SET username=0 WHERE 1=1 - Initialize balances
+	 * - db7.[Username]: INSERT (GroupID, GroupName) - Add to user's list
+	 * - db1.[GroupCode]: INSERT (Name, Amount) VALUES (username, 0) - Balance tracking
+	 * 
+	 * PERMISSION SETUP:
+	 * Calls AddPerms() which creates bidirectional payment records in db6
+	 * between the new user and all existing group members.
+	 * 
+	 * USAGE:
+	 * Called by actionPerformed() after successful code validation.
+	 * Currently used: 1 call site (JoinGroup.actionPerformed)
+	 * 
+	 * @param code The group code of the group to join
+	 * @param usrname The username of the user joining the group
 	 */
 	public static void AddNewUser(String code, String usrname) {
 		
-		File userFile, newFile, casFile;
-		String gname;
+		String[] gname;
 		
-		// Create bidirectional pending amount records with existing members
 		AddPerms(code);
 		
-		// Add user to group's member list
-		newFile = new File("src/splitwiseapplication/Groups/"+code);
-		UpdateFile.Update(usrname,newFile);
+		ApiCaller.ApiCaller1("http://localhost:8080/db4/InsertData?table="+code+"&params=(name)&info=('" + uname + "')");
 		
-		// Add group to user's personal folder
-		userFile = new File("src/splitwiseapplication/Personal_Folders/"+usrname);
-		gname = RetrieveName(code);
-		UpdateFile.Update(gname,userFile); 
+		gname = ApiCaller.ApiCaller3("http://localhost:8080/db3/GetSpecificData?val=group_name&table=GroupNames&group_code=" + code);
 		
-		// Initialize user's spending amount to $0
-		casFile = new File("src/splitwiseapplication/CheckAmountSpentFolder/"+code);
-		UpdateFile.Update(uname,"0",casFile);
+		ApiCaller.ApiCaller1("http://localhost:8080/db8/AddColumn?table="+code+"&uname="+usrname);
+
+		ApiCaller.ApiCaller1("http://localhost:8080/db8/UpdateData?table="+code+"&where=1=1&"+uname+"=0");
+		ApiCaller.ApiCaller1("http://localhost:8080/db7/InsertData?table="+uname+"&params=(GroupID,GroupName)&info=('" + code + "','" + gname[0] + "')");
+		
+		ApiCaller.ApiCaller1("http://localhost:8080/db1/InsertData?table="+code+"&params=(Name,Amount)&info=('" + uname + "',0)");
 		
 	}
 	
 	/**
-	 * Creates Pending Amount Records for New Member
+	 * AddPerms - Set Up Payment Permissions Between New User and Existing Members
 	 * 
-	 * When a user joins a group, creates balance tracking entries
-	 * between the new user and all existing members.
-	 * Format: username>0>existingMember (initially $0 owed)
+	 * PURPOSE:
+	 * Creates bidirectional payment permission records in db6 between the newly
+	 * joining user and all existing group members. This allows tracking of who
+	 * owes money to whom.
 	 * 
-	 * @param gcode The group code being joined
+	 * BEHAVIOR:
+	 * 1. Fetches all existing members from db4.[GroupCode] table
+	 * 2. Extracts member names from column index 1
+	 * 3. For each existing member:
+	 *    - Creates a permission record: (ExistingMember, 0, NewUser)
+	 *    - Initializes amount to 0 (no debt initially)
+	 * 
+	 * DATABASE OPERATIONS:
+	 * - db4.[GroupCode]: SELECT * - Get all members
+	 * - db6.[GroupCode]: INSERT (Member1, Amount, Member2) VALUES (existing, 0, newUser)
+	 *   - Creates records for each existing member
+	 *   - Member1 = existing member
+	 *   - Amount = 0 (initial balance)
+	 *   - Member2 = newly joining user
+	 * 
+	 * ALGORITHM:
+	 * 1. Query db4 to get 2D array of members (row 0 = headers)
+	 * 2. Create String array sized for data rows only (length-1)
+	 * 3. Loop from row 1 to end, extracting names from column 1
+	 * 4. For each name, insert permission record in db6
+	 * 
+	 * PERMISSION STRUCTURE:
+	 * Each record represents a potential debt relationship.
+	 * The Amount field will be updated when transactions occur.
+	 * 
+	 * USAGE:
+	 * Called by AddNewUser() as the first step in group joining.
+	 * Currently used: 1 call site (JoinGroup.AddNewUser)
+	 * 
+	 * @param gcode The group code for which to set up permissions
 	 */
 	public static void AddPerms(String gcode) {
+
+		String[][] lst = ApiCaller.ApiCaller1("http://localhost:8080/db4/GetRowData?table="+ gcode);
+		String[] values = new String[lst.length-1];
 		
-		File newFile = new File("src/splitwiseapplication/Groups/"+gcode);
-		ArrayList<String> lst = Exists.exists(gcode, newFile);
-		
-		// Create pending amount entry for each existing member
-		for (String i : lst) {
-			UpdateFile.Update(uname,"0", i, new File("src/splitwiseapplication/PendingAmount/"+gcode));
+		for (int i = 1; i < lst.length; i++) {
+			values[i-1] = lst[i][1];
+		}
+		for (String i : values) {
+			ApiCaller.ApiCaller1("http://localhost:8080/db6/InsertData?table="+gcode+"&params=(Member1,Amount,Member2)&info=('" + i + "',0,'" + uname + "')");
 		}
 	}
 	
+
 	/**
-	 * Retrieves Group Name from Group Code
+	 * runGUI - Display the JoinGroup Window
 	 * 
-	 * Looks up the human-readable group name associated with a group code
-	 * by searching the groups.txt file.
+	 * PURPOSE:
+	 * Makes the JoinGroup frame visible to the user.
+	 * Final step in showing the group joining interface.
 	 * 
-	 * File format: groupCode,groupName
+	 * BEHAVIOR:
+	 * - Enables default window decorations (title bar, close button, etc.)
+	 * - Makes the instance frame visible
 	 * 
-	 * @param c The group code to look up
-	 * @return The group name corresponding to the code
+	 * DESIGN PATTERN:
+	 * Follows the two-step initialization pattern used throughout the app:
+	 * 1. Constructor builds the UI (but keeps frame invisible)
+	 * 2. runGUI() displays the frame
+	 * 
+	 * This separation allows for UI setup before display.
+	 * 
+	 * INSTANCE METHOD:
+	 * Called on JoinGroup instance to display its frame.
+	 * 
+	 * USAGE:
+	 * Called by Groups.java after creating JoinGroup instance.
+	 * Currently used: 1 call site (Groups.actionPerformed)
 	 */
-	public static String RetrieveName(String c) {
-		
-		String line;
-		File textFile;
-		
-		textFile = new File("src/splitwiseapplication/groups.txt");
-		
-		try (FileReader in = new FileReader(textFile);
-		     BufferedReader readFile = new BufferedReader(in)) {
-			while ((line = readFile.readLine()) != null ) {
-				String[] myArray = line.split(",");
-				if (myArray[0].equals(c)) {
-					return myArray[1]; // Return the group name
-				}
-			}
-		} catch (FileNotFoundException e) {
-			System.err.println("FileNotFoundException: "
-					+ e.getMessage());
-		} catch (IOException e) {
-			System.err.println("IOException: " + e.getMessage());
-		}
-		
-		return (c); // Fallback: return code if not found
-		
-	}
-	
-	/**
-	 * Display the Join Group GUI
-	 * 
-	 * Makes the join group frame visible to the user.
-	 * Should be called after constructing a JoinGroup object.
-	 */
-	public static void runGUI() {
+	public void runGUI() {
 		 
 		JFrame.setDefaultLookAndFeelDecorated(true);
 		frame.setVisible(true);

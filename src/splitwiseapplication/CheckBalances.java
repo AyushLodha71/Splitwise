@@ -3,98 +3,150 @@ package splitwiseapplication;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import javax.swing.*;
 
 /**
- * CheckBalances - Individual Balance Details Interface
+ * CheckBalances - Display Who Owes Money to Whom in a Group
  * 
- * This class provides a member-by-member breakdown of all debts in the group.
- * Unlike SettlePayment which shows only the current user's debts, this interface
- * shows the complete balance state for ALL members.
+ * PURPOSE:
+ * Provides a comprehensive view of all debt relationships within a group.
+ * Shows which members owe money to other members and vice versa.
+ * Interactive interface where clicking a member's button reveals their detailed balance.
  * 
- * User Experience:
- * - Displays a button for each group member
- * - Click a member's button to toggle display of their balance details
- * - Details show all debts that member is involved in
+ * FUNCTIONALITY:
+ * - Fetches all group members from db4
+ * - Fetches all payment records from db6 (Member1, Amount, Member2)
+ * - Calculates bidirectional debt relationships
+ * - Creates clickable button for each member
+ * - Clicking button toggles display of member's balance details
+ * - Shows both debts owed and debts receivable for each member
  * 
- * Balance Display Format:
- * For each member, shows all their debts in both directions:
- * - "Member owes $X to OtherMember"
- * - "OtherMember owes $X to Member"
+ * USER FLOW:
+ * 1. User clicks "Check Balances" in MainPage
+ * 2. CheckBalances screen shows list of all group members as buttons
+ * 3. User clicks a member's button
+ * 4. Screen shows detailed balance for that member:
+ *    - "You owe $X to [Name]" (for debts)
+ *    - "[Name] owes $X" (for receivables)
+ * 5. Clicking same button again hides the details (toggle)
+ * 6. User can click Back to return to MainPage
  * 
- * Technical Details:
- * - Uses Member_Info objects to store balance data per member
- * - Loads debt pairs from PendingAmount file
- * - Each debt is recorded TWICE (once for each member involved)
- * - Clicking a member button toggles their balance details on/off
+ * BALANCE CALCULATION LOGIC:
+ * For each payment record in db6:
+ * - If Amount > 0:
+ *   - Member2 owes Money to Member1
+ *   - Add "[Member2] owes [Amount]" to Member1's info
+ *   - Add "You owe [Amount] to [Member1]" to Member2's info
+ * - If Amount < 0:
+ *   - Member1 owes Money to Member2 (negative indicates reverse debt)
+ *   - Convert to positive amount for display
+ *   - Add "[Member1] owes [Amount]" to Member2's info
+ *   - Add "You owe [Amount] to [Member2]" to Member1's info
+ * - If Amount = 0: No debt between members (skip)
  * 
- * File Used: PendingAmount/{groupCode}
- * Format: "creditor>amount>debtor"
- * - Positive amount: debtor owes creditor
- * - Negative amount: creditor owes debtor (bilateral debt)
+ * DATA STRUCTURE:
+ * Uses Member_Info objects to store each member's balance information:
+ * - name: Member's username
+ * - members: ArrayList of balance strings (debts/receivables)
  * 
- * @version 2.0 - Enhanced with comprehensive documentation and improved UX
+ * DATABASE QUERIES:
+ * - db4.[GroupCode]: Fetch all member names
+ * - db6.[GroupCode]: Fetch all payment records (Member1, Amount, Member2)
+ * 
+ * UI BEHAVIOR:
+ * - Each member has button + label (initially empty)
+ * - Click button: Label shows balance details (HTML formatted with bullets)
+ * - Click again: Label clears (toggle behavior)
+ * - Back button: Return to MainPage
+ * 
+ * NAVIGATION:
+ * - Entry Point: MainPage.java (when user clicks "Check Balances")
+ * - Exit Point: MainPage.java (when clicking Back)
+ * 
+ * UI COMPONENTS:
+ * - JButton for each member (dynamic based on group size)
+ * - JLabel for each member's balance details (empty initially)
+ * - JButton for Back navigation
+ * - GridLayout with 1 column (vertical list)
+ * 
+ * DESIGN PATTERN:
+ * - Implements ActionListener for event handling
+ * - Static frame pattern (single shared JFrame instance)
+ * - Constructor builds UI and calculates balances, runGUI() displays it
+ * - Uses Member_Info data class to organize balance information
+ * 
+ * @author Original Development Team
  */
 public class CheckBalances implements ActionListener{
 	
-	// Main application frame
 	static JFrame frame;
-	
-	// Main content panel with vertical grid layout
 	JPanel contentPane;
-	
-	// Current user and group identifiers
 	String uname,gcode;
-	
-	// Member_Info objects storing balance details for each member
-	ArrayList<Member_Info> info = new ArrayList<>();
+	ArrayList<Member_Info> info = new ArrayList<Member_Info>();
 	Member_Info addMember;
-	
-	// Raw debt pair data from PendingAmount file
 	ArrayList<String[]> PACombinations;
-	
-	// List of all group members
 	ArrayList<String> members;
-	
-	// Member names for event handling
-	ArrayList<String> memberValues = new ArrayList<>();
-	
-	// UI components
+	ArrayList<String> memberValues = new ArrayList<String>();
 	JButton mmbrb, back;
-	
-	// Labels displaying balance details below each member button
-	ArrayList<JLabel> memberLabels = new ArrayList<>();
+	ArrayList<JLabel> memberLabels = new ArrayList<JLabel>();
 	JLabel mmbrl;
 	
 	/**
-	 * Constructs the CheckBalances interface showing all member balances.
+	 * Constructor - Initialize CheckBalances GUI and Calculate Debt Relationships
 	 * 
-	 * This constructor performs several complex operations:
-	 * 1. Creates a button for each group member
-	 * 2. Creates a label below each button for balance details
-	 * 3. Loads all debt pairs from PendingAmount file
-	 * 4. Populates Member_Info objects with balance data
+	 * PURPOSE:
+	 * Creates the balance checking interface and computes all debt relationships
+	 * between group members based on payment records.
 	 * 
-	 * Layout Structure:
-	 * - Vertical grid layout: [Button][Label][Button][Label]...[Back]
-	 * - Each member gets: button (to toggle) + label (for details)
+	 * BEHAVIOR:
+	 * - Stores username and group code
+	 * - Creates JFrame with title "Splitwise - Check Balances Page"
+	 * - Sets frame size to 300x500 pixels
+	 * - Fetches all group members from db4
+	 * - Creates Member_Info object for each member
+	 * - Creates button + label pair for each member
+	 * - Fetches all payment records from db6
+	 * - Calculates debt relationships from payment records
+	 * - Populates Member_Info objects with balance strings
+	 * - Configures frame but keeps invisible (runGUI() displays it)
 	 * 
-	 * Balance Data Processing:
-	 * For each debt pair "creditor>amount>debtor":
-	 * - If amount > 0:
-	 *   * Add "debtor owes amount" to creditor's info
-	 *   * Add "You owe amount to creditor" to debtor's info
-	 * - If amount < 0:
-	 *   * Reverse the relationship (bilateral debt)
+	 * DEBT CALCULATION ALGORITHM:
+	 * For each row in db6 payment records (skip row 0 = headers):
+	 * 1. Extract: Member1 (column 1), Amount (column 2), Member2 (column 3)
+	 * 2. Parse Amount as double
+	 * 3. If Amount > 0:
+	 *    - Member2 owes Member1
+	 *    - Add "[Member2] owes [Amount]" to Member1's list
+	 *    - Add "You owe [Amount] to [Member1]" to Member2's list
+	 * 4. If Amount < 0:
+	 *    - Member1 owes Member2 (reverse direction)
+	 *    - Convert to positive: positiveAmount = -Amount
+	 *    - Add "[Member1] owes [positiveAmount]" to Member2's list
+	 *    - Add "You owe [positiveAmount] to [Member2]" to Member1's list
+	 * 5. If Amount = 0: Skip (no debt)
 	 * 
-	 * This creates a comprehensive view where each member can see:
-	 * - Who owes them money
-	 * - Who they owe money to
+	 * STRING TRIMMING:
+	 * All member names are trimmed to handle potential whitespace from database.
+	 * Critical for indexOf() lookups to work correctly.
 	 * 
-	 * @param usrname The current user (for returning to MainPage)
-	 * @param grpcode The group code to load balances for
+	 * UI CONSTRUCTION:
+	 * For each member:
+	 * - Create JButton with member's name
+	 * - Create JLabel (empty initially)
+	 * - Add button and label to content pane
+	 * - Store in memberValues and memberLabels lists
+	 * 
+	 * DEBUG OUTPUT:
+	 * Prints members list and each Member2 value to System.out for debugging.
+	 * 
+	 * DATABASE QUERIES:
+	 * - db4.[GroupCode]: SELECT name - Get all group members
+	 * - db6.[GroupCode]: SELECT * - Get all payment records
+	 * 
+	 * @param usrname The logged-in user viewing balances
+	 * @param grpcode The group code for which to check balances
 	 */
 	public CheckBalances(String usrname, String grpcode) {
 		
@@ -104,60 +156,46 @@ public class CheckBalances implements ActionListener{
 		frame = new JFrame("Splitwise - Check Balances Page");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setSize(300, 500);
-		
-		// Create main content panel with vertical grid layout
+		/* Create a content pane */
 		contentPane = new JPanel();
 		contentPane.setLayout(new GridLayout(0, 1, 10, 5));
 		contentPane.setBorder(BorderFactory.createEmptyBorder(20,50,20,50));
 		
-		// Load all group members
-		members = Exists.contents_STR(new File("src/splitwiseapplication/Groups/"+gcode));
+		members = new ArrayList<>(Arrays.asList(ApiCaller.ApiCaller3("http://localhost:8080/db4/GetSpecificData?val=name&table="+ grpcode)));
 		
-		// Create button + label pair for each member
+		System.out.println(members);
+		
 		for (String i: members) {
-			// Initialize Member_Info object to store balance details
 			addMember = new Member_Info(i);
 			info.add(addMember);
-			
-			// Create member button (click to toggle balance details)
 			mmbrb = new JButton(i);
-			mmbrb.setToolTipText("Click to view " + i + "'s balance details");
 			mmbrb.addActionListener(this);
 			mmbrb.setActionCommand(i);
 			memberValues.add(i);
-			
-			// Create label for displaying balance details (initially empty)
 			mmbrl = new JLabel("");
 			memberLabels.add(mmbrl);
-			
 			contentPane.add(mmbrb);
 			contentPane.add(mmbrl);
 		}
 		
-		// Add Back button at bottom
 		back = new JButton("Back");
-		back.setToolTipText("Return to group dashboard");
 		back.addActionListener(this);
 		back.setActionCommand("Back");
 		contentPane.add(back);
 		
-		// Load all debt pairs from PendingAmount file
-		PACombinations = Exists.contents(new File("src/splitwiseapplication/PendingAmount/"+gcode),">");
+		PACombinations = new ArrayList<>(Arrays.asList(ApiCaller.ApiCaller1("http://localhost:8080/db6/GetRowData?table="+ grpcode)));
 		
-		// Populate balance data for each member
-		// Each debt is recorded TWICE (once for creditor, once for debtor)
 		for (int i = 1; i < PACombinations.size(); i++) {
 			String[] t = PACombinations.get(i);
-			
-			if (Double.parseDouble(t[1]) > 0) {
-				// Positive amount: debtor owes creditor
-				info.get(members.indexOf(t[0])).addMembers(t[2] + " owes " + t[1]);
-				info.get(members.indexOf(t[2])).addMembers("You owe " + t[1] + " to " + t[0]);
-			} else if (Double.parseDouble(t[1]) < 0) {
-				// Negative amount: creditor owes debtor (bilateral debt)
-				double newVal = -1.0 * Double.parseDouble(t[1]);
-				info.get(members.indexOf(t[2])).addMembers(t[0] + " owes " + newVal);
-				info.get(members.indexOf(t[0])).addMembers("You owe " + newVal + " to " + t[2]);
+			System.out.println(t[3]);
+			double amount = Double.parseDouble(t[2]);
+			if (amount > 0) {
+				info.get(members.indexOf(t[1].trim())).addMembers(t[3].trim() + " owes " + amount);
+				info.get(members.indexOf(t[3].trim())).addMembers("You owe " + amount + " to " + t[1].trim());
+			} else if (amount < 0) {
+				double positiveAmount = -amount;
+				info.get(members.indexOf(t[3].trim())).addMembers(t[1].trim() + " owes " + positiveAmount);
+				info.get(members.indexOf(t[1].trim())).addMembers("You owe " + positiveAmount + " to " + t[3].trim());
 			}
 		}
 		
@@ -167,44 +205,55 @@ public class CheckBalances implements ActionListener{
 	}
 	
 	/**
-	 * Handles button click events for the CheckBalances interface.
+	 * actionPerformed - Handle User Actions (Member Button Clicks, Back Button)
 	 * 
-	 * Action Handling:
-	 * - "Back" Button:
-	 *   Returns to MainPage (group dashboard)
+	 * PURPOSE:
+	 * Event handler for all user interactions in the CheckBalances screen.
+	 * Manages toggling balance display for members and navigation.
 	 * 
-	 * - Member Button:
-	 *   Toggles display of that member's balance details
-	 *   - If label is empty: show balance details
-	 *   - If label has text: hide balance details
+	 * EVENT TYPES:
 	 * 
-	 * Toggle Behavior:
-	 * This creates an accordion-style interface where clicking a member
-	 * button expands/collapses their balance information. Only the clicked
-	 * member's details are affected; other members remain unchanged.
+	 * 1. "Back" - Navigate back to MainPage
+	 *    - Creates MainPage instance with username and group code
+	 *    - Shows MainPage screen
+	 *    - Disposes current frame
 	 * 
-	 * @param event The button click event containing the action command
+	 * 2. Member Button Click - Toggle balance display for specific member
+	 *    - Action command = member's name
+	 *    - Finds member's index in memberValues list
+	 *    - Gets corresponding label from memberLabels list
+	 *    - Checks if label is currently empty:
+	 *      - If empty: Populates label with member's balance details
+	 *        - Calls getString() to format balance info as HTML
+	 *      - If not empty: Clears label (hides balance)
+	 *    - Creates toggle behavior (show/hide on each click)
+	 * 
+	 * TOGGLE LOGIC:
+	 * - First click: Label empty ("") → Show balance
+	 * - Second click: Label has content → Hide balance (set to "")
+	 * - Third click: Label empty again → Show balance again
+	 * 
+	 * MEMBER LOOKUP:
+	 * Uses indexOf() on memberValues to find position.
+	 * Position corresponds to both memberLabels and info lists.
+	 * 
+	 * @param event The ActionEvent containing the action command
 	 */
-	@Override
 	public void actionPerformed(ActionEvent event) {
 		
 		String eventName = event.getActionCommand();
 		
 		if (eventName.equals("Back")) {
-			// Return to group dashboard
 			MainPage mpage = new MainPage(uname,gcode);
 			mpage.runGUI();
 			frame.dispose();
 		} else {
-			// Member button clicked - toggle their balance details
 			int t = memberValues.indexOf(eventName);
 			String lText = memberLabels.get(t).getText();
 			
 			if (lText.equals("")) {
-				// Label is empty - show balance details
 				memberLabels.get(t).setText(getString(info.get(t)));
 			} else {
-				// Label has text - hide balance details
 				memberLabels.get(memberValues.indexOf(eventName)).setText("");
 			}
 		}
@@ -212,26 +261,50 @@ public class CheckBalances implements ActionListener{
 	}
 	
 	/**
-	 * Formats member balance information as an HTML bulleted list.
+	 * getString - Format Member Balance Details as HTML
 	 * 
-	 * This method converts a Member_Info object into a displayable string.
-	 * Each debt is shown as a bullet point:
-	 * • Member owes $25.00
-	 * • You owe $15.50 to OtherMember
+	 * PURPOSE:
+	 * Converts Member_Info object into formatted HTML string for display in JLabel.
+	 * Generates a visual summary of balances for a specific member.
 	 * 
-	 * Uses HTML formatting to:
-	 * - Enable multi-line display in JLabel
-	 * - Create bullet points for readability
-	 * - Support line breaks between items
+	 * HTML FORMATTING:
+	 * - Wraps entire content in <html> tags for JLabel rendering
+	 * - Each balance entry on separate line using <br>
+	 * - Format: "• Member Name = Amount"
+	 * - Bullet point (•) used as visual indicator
 	 * 
-	 * @param pinformation The Member_Info object containing balance details
-	 * @return HTML-formatted string with all balance entries
+	 * POSITIVE vs NEGATIVE AMOUNTS:
+	 * - Positive amount: Member owes others money
+	 *   Example: "• John = 50.0" means this member owes John $50
+	 * 
+	 * - Negative amount: Member is owed money by others
+	 *   Example: "• Jane = -30.0" means Jane owes this member $30
+	 * 
+	 * ZERO BALANCES:
+	 * - Zero amounts included in display
+	 * - Indicates settled/no interaction between members
+	 * 
+	 * DATA SOURCE:
+	 * - Member_Info object contains:
+	 *   - info: List of member names
+	 *   - value: List of balance amounts
+	 *   - Both lists are parallel (same index = same member)
+	 * 
+	 * OUTPUT EXAMPLE:
+	 * <html>• Alice = 100.0<br>• Bob = -50.0<br>• Charlie = 0.0</html>
+	 * 
+	 * ITERATION:
+	 * - Loops through getMembers() which returns formatted strings
+	 * - Each string already includes member name and amount
+	 * - Adds bullet and line break for each entry
+	 * 
+	 * @param pinformation The Member_Info object containing member names and balances
+	 * @return HTML-formatted string displaying all balance relationships
 	 */
 	public String getString(Member_Info pinformation) {
 		
 		String returnString = "<html>";
 		
-		// Add each balance entry as a bullet point
 		for (String i: pinformation.getMembers()) {
 			returnString += "• " + i + "<br>";
 		}
@@ -243,11 +316,28 @@ public class CheckBalances implements ActionListener{
 	}
 	
 	/**
-	 * Displays the CheckBalances window.
+	 * runGUI - Display CheckBalances Screen
 	 * 
-	 * Makes the balance details interface visible to the user.
+	 * PURPOSE:
+	 * Instance method to make the CheckBalances frame visible to the user.
+	 * Shows the balance summary screen with interactive member buttons.
+	 * 
+	 * FUNCTIONALITY:
+	 * - Enables decorated look and feel for JFrame
+	 * - Makes the instance 'frame' visible
+	 * 
+	 * INSTANCE PATTERN:
+	 * - Uses instance 'frame' member variable
+	 * - Frame is initialized by constructor before calling this method
+	 * - Must be called on CheckBalances instance
+	 * 
+	 * CALL SITES:
+	 * - Called from MainPage after CheckBalances constructor
+	 * - Pattern: CheckBalances cb = new CheckBalances(...); cb.runGUI();
+	 * 
+	 * @throws None (assumes frame is already initialized by constructor)
 	 */
-	public static void runGUI() {
+	public void runGUI() {
 		 
 		JFrame.setDefaultLookAndFeelDecorated(true);
 		frame.setVisible(true);

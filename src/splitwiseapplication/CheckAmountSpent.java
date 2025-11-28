@@ -4,151 +4,155 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.Arrays;
 import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
 /**
- * CheckAmountSpent - Individual Spending Summary Interface
+ * CheckAmountSpent - Expenditure Summary Screen
  * 
- * This class displays a table showing how much each group member has spent
- * in total across all transactions. This is different from CheckBalances:
+ * PURPOSE:
+ * Displays a table showing how much each group member has spent or owes.
+ * Provides a quick overview of individual member balances in the group.
  * 
- * CheckAmountSpent: Shows TOTAL SPENDING per member
- * - "John spent $150.00 total"
- * - Tracks contributions to expenses only
- * - Does NOT show who owes whom
+ * FUNCTIONALITY:
+ * - Shows table with 3 columns: Id, Name, Amount Spent
+ * - Displays all group members and their total spending
+ * - Read-only view (no editing)
+ * - Back button returns to MainPage
  * 
- * CheckBalances: Shows WHO OWES WHOM
- * - "John owes Sarah $25.00"
- * - Shows current debt state
- * - Accounts for both expenses and settlements
+ * TABLE STRUCTURE:
+ * - Column 1 (Id): Database row ID
+ * - Column 2 (Name): Member username or "Total" for group total
+ * - Column 3 (Amount Spent): Total amount spent by member
  * 
- * Use Case:
- * This interface is useful for:
- * - Seeing who has contributed the most to group expenses
- * - Verifying your total spending on the group
- * - Understanding spending patterns across members
+ * AMOUNT INTERPRETATION:
+ * - Positive amount: Member has spent money (paid expenses)
+ * - Negative amount: Member owes money
+ * - "Total" row: Shows total group expenditure
  * 
- * Data Source: CheckAmountSpentFolder/{groupCode}
- * File Format: "memberName,totalSpent"
- * - Updated when expenses are added (Type 0 transactions)
- * - NOT updated for settlements (Type 1 transactions)
- * - Represents cumulative spending since group creation
+ * DATA SOURCE:
+ * - db1 table: Individual member balances
+ * - First row typically contains "Total" for entire group
+ * - Subsequent rows contain individual member data
  * 
- * Display Format:
- * A simple two-column table:
- * | Name    | Amount Spent |
- * |---------|--------------|
- * | John    | $150.00      |
- * | Sarah   | $75.50       |
+ * UI FEATURES:
+ * - Scrollable table (auto-sized to content)
+ * - Vertical box layout
+ * - Centered "Back" button below table
+ * - Auto-sized frame based on table content
  * 
- * @version 2.0 - Enhanced with comprehensive documentation and improved UX
+ * NAVIGATION:
+ * - From: MainPage (Check Amount Spent button)
+ * - To: MainPage (Back button)
+ * 
+ * USAGE:
+ * Called from MainPage.java when user clicks "Check Amount Spent" button.
+ * Currently used: 1 call site (MainPage.actionPerformed)
  */
 public class CheckAmountSpent implements ActionListener{
 	
-	// Main application frame
 	static JFrame frame;
-	
-	// Main content panel
 	JPanel contentPane;
-	
-	// Current user and group identifiers
 	String uname, gcode;
-	
-	// Spending data: each entry is [memberName, totalSpent]
-	ArrayList<String[]> values = new ArrayList<>();
-	
-	// Back button to return to dashboard
+	ArrayList<String[]> values = new ArrayList<String[]>();
 	JButton back;
-	
-	// Table displaying spending data
 	JTable expenditureTable;
-	JLabel mmbrl;
-	Object[][] rowData;
 	DefaultTableModel tableModel;
-	
-	// Table column headers
-	String[] columnNames = new String[2];
-	
+	String[] columnNames = new String[3];
 	
 	/**
-	 * Constructs the CheckAmountSpent interface displaying spending totals.
+	 * CheckAmountSpent Constructor - Initialize Expenditure Summary Screen
 	 * 
-	 * This constructor:
-	 * 1. Loads spending data from CheckAmountSpentFolder file
-	 * 2. Creates a two-column table (Name | Amount Spent)
-	 * 3. Populates the table with member spending data
-	 * 4. Sizes the table to fit content exactly
+	 * PURPOSE:
+	 * Creates the UI for viewing group member spending in a table format.
+	 * Fetches balance data and displays in organized, readable table.
 	 * 
-	 * Table Layout:
-	 * - Column 1: Member name
-	 * - Column 2: Total amount spent by that member
+	 * @param username The current user's username
+	 * @param groupcode The group code
 	 * 
-	 * The table auto-sizes to show all data without scrolling
-	 * (unless there are many members).
+	 * PROCESS:
 	 * 
-	 * Data Loading:
-	 * Reads CheckAmountSpentFolder/{groupCode} file
-	 * Format: "memberName,totalSpent"
-	 * Each line represents one member's cumulative spending
+	 * 1. INITIALIZATION:
+	 *    - Stores username and group code
+	 *    - Creates frame with BoxLayout (vertical arrangement)
+	 *    - Sets fixed frame size: 300x500
+	 *    - Adds padding border (20,50,20,50)
 	 * 
-	 * @param username The current user (for returning to MainPage)
-	 * @param groupcode The group code to load spending data for
+	 * 2. DATA RETRIEVAL:
+	 *    - Queries db1 for all member balances
+	 *    - values array contains: [id, name, amount] for each member
+	 *    - First row typically "Total" showing group total
+	 * 
+	 * 3. TABLE SETUP:
+	 *    - Column headers: "Id", "Name", "Amount Spent"
+	 *    - Creates 2D array for table data
+	 *    - Populates from index 1 (skips header row from API)
+	 *    - Creates DefaultTableModel with data and column names
+	 * 
+	 * 4. UI CONSTRUCTION:
+	 *    - Creates JTable with table model
+	 *    - Wraps table in JScrollPane for scrolling
+	 *    - Auto-sizes scroll pane based on table content
+	 *    - Adds vertical spacing (10 pixels)
+	 *    - Adds centered "Back" button below table
+	 * 
+	 * 5. TABLE SIZING:
+	 *    - Calculates preferred height: table height + header height
+	 *    - Width: table width + 40 pixels padding
+	 *    - Ensures all data visible without excessive white space
+	 * 
+	 * 6. BUTTON SETUP:
+	 *    - Back button centered horizontally
+	 *    - Action command: "Back"
+	 *    - Returns to MainPage when clicked
+	 * 
+	 * DATABASE QUERY:
+	 * - db1 table: Individual member balances
+	 * - Returns all rows including "Total" row
+	 * 
+	 * POST-CONDITIONS:
+	 * - Frame created but invisible (call runGUI() to display)
+	 * - Table populated with current member spending data
+	 * - Back button configured with action listener
 	 */
 	public CheckAmountSpent(String username, String groupcode) {
 		
 		uname = username;
 		gcode = groupcode;
 		
-		frame = new JFrame("Splitwise - Check Amount Spent");
+		frame = new JFrame("Splitwise - Check Balances Page");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setSize(300, 500);
-		
-		// Create main content panel with vertical layout
+		/* Create a content pane */
 		contentPane = new JPanel();
 		contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
 		contentPane.setBorder(BorderFactory.createEmptyBorder(20,50,20,50));
 		
-		// Load spending data from file
-		values = Exists.contents(new File("src/splitwiseapplication/CheckAmountSpentFolder/"+gcode),",");
+		values = new ArrayList<>(Arrays.asList(ApiCaller.ApiCaller1("http://localhost:8080/db1/GetRowData?table="+ gcode)));
 
-		// Set up table column headers
-        columnNames[0] = "Name";
-        columnNames[1] = "Amount Spent";
+        columnNames[0] = "Id";
+		columnNames[1] = "Name";
+        columnNames[2] = "Amount Spent";
         
-		// Populate table data from values list
-		Object[][] rowData;
-		if (values.isEmpty()) {
-			// No spending data yet
-			rowData = new Object[0][2];
-		} else {
-			// Convert ArrayList to 2D array for JTable
-			rowData = new Object[values.size()][values.get(0).length];
-			for (int i = 0; i < values.size(); i++) {
-				rowData[i] = values.get(i);
-			}
+		Object[][] rowData = new Object[values.size()][values.get(0).length];
+
+		for (int i = 1; i < values.size(); i++) {
+			rowData[i] = values.get(i);
 		}
-        
-		// Create table with spending data
+
         tableModel = new DefaultTableModel(rowData, columnNames);
-        expenditureTable = new JTable(tableModel);
-        expenditureTable.setToolTipText("Total spending by each member");
         
-		// Wrap table in scrollable pane
+		expenditureTable = new JTable(tableModel);
 		JScrollPane scrollPane = new JScrollPane(expenditureTable);
-		
-		// Size scrollpane to fit table content exactly
 		int preferredTableHeight = expenditureTable.getPreferredSize().height + expenditureTable.getTableHeader().getPreferredSize().height;
         scrollPane.setPreferredSize(new Dimension(expenditureTable.getPreferredSize().width + 40, preferredTableHeight + 3));
 		contentPane.add(scrollPane);
 
-        // Add spacing before back button
-        contentPane.add(Box.createVerticalStrut(10));
         
-		// Add back button
+        contentPane.add(Box.createVerticalStrut(10));
 		back = new JButton("Back");
-		back.setToolTipText("Return to group dashboard");
 		back.addActionListener(this);
 		back.setActionCommand("Back");
 		back.setAlignmentX(Component.CENTER_ALIGNMENT); 
@@ -161,34 +165,67 @@ public class CheckAmountSpent implements ActionListener{
 	}
 	
 	/**
-	 * Handles the Back button click event.
+	 * actionPerformed - Handle User Actions (Back Button)
 	 * 
-	 * Returns the user to the MainPage (group dashboard).
+	 * PURPOSE:
+	 * Event handler for user interactions in the CheckAmountSpent screen.
+	 * Currently only handles navigation back to MainPage.
 	 * 
-	 * @param event The button click event
+	 * EVENT TYPES:
+	 * 
+	 * 1. "Back" - Return to Main Page
+	 *    - Creates MainPage instance with username and group code
+	 *    - Shows MainPage screen
+	 *    - Disposes current frame
+	 * 
+	 * SIMPLE NAVIGATION:
+	 * This screen is read-only (no data modification), so only
+	 * navigation action is returning to MainPage.
+	 * 
+	 * @param event The ActionEvent containing the action command
 	 */
-	@Override
 	public void actionPerformed(ActionEvent event) {
 		
 		String eventName = event.getActionCommand();
 		
 		if (eventName.equals("Back")) {
-			// Return to group dashboard
 			MainPage mpage = new MainPage(uname,gcode);
 			mpage.runGUI();
 			frame.dispose();
-		}
+		} 
 		
 	}
 	
 	/**
-	 * Displays the CheckAmountSpent window.
+	 * runGUI - Display the CheckAmountSpent Window
 	 * 
-	 * Makes the spending summary interface visible to the user.
+	 * PURPOSE:
+	 * Makes the CheckAmountSpent frame visible to the user.
+	 * Final step in showing the expenditure summary interface.
+	 * 
+	 * BEHAVIOR:
+	 * - Enables default window decorations (title bar, close button, etc.)
+	 * - Makes the instance frame visible
+	 * 
+	 * DESIGN PATTERN:
+	 * Follows the two-step initialization pattern used throughout the app:
+	 * 1. Constructor builds the UI (but keeps frame invisible)
+	 * 2. runGUI() displays the frame
+	 * 
+	 * This separation allows for UI setup before display.
+	 * 
+	 * INSTANCE METHOD:
+	 * Called on CheckAmountSpent instance to display its frame.
+	 * 
+	 * USAGE:
+	 * Called by MainPage.java after creating CheckAmountSpent instance.
+	 * Currently used: 1 call site (MainPage.actionPerformed)
 	 */
-	public static void runGUI() {
+	public void runGUI() {
 		 
 		JFrame.setDefaultLookAndFeelDecorated(true);
 		frame.setVisible(true);
 		
-	}}
+	}
+
+}
