@@ -206,7 +206,7 @@ The application communicates with the Spring Boot backend through RESTful endpoi
 - **Equal Split**: Divide expenses evenly among all members
 - **Selective Split**: Split among chosen members only
 - **Custom Amounts**: Specify exact amounts per member
-- **Percentage Split**: Distribute based on percentages
+- **Custom Percentages Split**: Distribute based on percentages
 
 ### Multi-Database Architecture
 - Optimized data separation for performance
@@ -214,7 +214,7 @@ The application communicates with the Spring Boot backend through RESTful endpoi
 - Dynamic table creation for new groups
 
 ### User Experience
-- Intuitive GUI with Java Swing components
+- Simple GUI with Java Swing components
 - Password visibility toggle with eye icons
 - Comprehensive transaction history
 - Group membership management
@@ -224,7 +224,9 @@ The application communicates with the Spring Boot backend through RESTful endpoi
 **May 2025**: Initial repository creation and first week's development
 **August 2025**: Fully functional code with data storage in .txt files
 **November 2025**: Fully functional code with data storage in local MySQL Database. Uses Spring Boot and REST API to interact with MySQL.
-**Future Plans**: Migrate the database from offline to online hosting
+**Future Plans**: 
+  1. Migrate the database from offline to online hosting.
+  2. Add Encryption to Password.
 
 ---
 
