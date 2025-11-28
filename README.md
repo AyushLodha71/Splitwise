@@ -221,10 +221,10 @@ The application communicates with the Spring Boot backend through RESTful endpoi
 
 ## Development History
 
-**May 2025**: Initial repository creation and first week's development
-**August 2025**: Fully functional code with data storage in .txt files
-**November 2025**: Fully functional code with data storage in local MySQL Database. Uses Spring Boot and REST API to interact with MySQL.
-**Future Plans**: 
+- **May 2025**: Initial repository creation and first week's development
+- **August 2025**: Fully functional code with data storage in .txt files
+- **November 2025**: Fully functional code with data storage in local MySQL Database. Uses Spring Boot and REST API to interact with MySQL.
+- **Future Plans**: 
   1. Migrate the database from offline to online hosting.
   2. Add Encryption to Password.
 
