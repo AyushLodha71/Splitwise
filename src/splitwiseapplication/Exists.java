@@ -1,162 +1,72 @@
 package splitwiseapplication;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-
-public class Exists {
-
-	public static ArrayList<String> exists(String uname, File textFile) {
-		
-		FileReader in;
-		BufferedReader readFile;
-		String line;
-		ArrayList<String> grouplist = new ArrayList<String>();
-		int location;
-		
-		try {
-			in = new FileReader(textFile);
-			readFile = new BufferedReader(in);
-			while ((line = readFile.readLine()) != null ) {
-				String[] myArray = line.split(",");
-				grouplist.add(myArray[0]);
-			}
-			readFile.close();
-			in.close();
-		} catch (FileNotFoundException e) {
-			System.err.println("FileNotFoundException: "
-					+ e.getMessage());
-		} catch (IOException e) {;
-			System.err.println("IOException: " + e.getMessage());
-		}
-		
-		return grouplist;
-		
-	}
+/**
+ * Utility class for verifying the existence of records via API calls.
+ * 
+ * Purpose:
+ * This class provides a simple wrapper around API calls to check whether
+ * specific data exists in the backend database without retrieving the full dataset.
+ * 
+ * Primary use cases:
+ * - Authentication: Validate user credentials during login
+ * - Registration: Check username availability before account creation
+ * - Group operations: Verify group existence and membership status
+ * 
+ * Design notes:
+ * - All methods are static (utility class pattern)
+ * - Returns boolean for simple yes/no existence checks
+ * - Delegates actual API communication to ApiCaller class
+ * - Includes debug logging of result counts to stdout
+ */
+public class Exists {		
 	
-	public static String[] exists_Array(String find, File textFile) {
-		
-		FileReader in;
-		BufferedReader readFile;
-		String line;
-		String[] grouplist = new String[0];
-		int location;
-		
-		try {
-			in = new FileReader(textFile);
-			readFile = new BufferedReader(in);
-			while ((line = readFile.readLine()) != null ) {
-				String[] myArray = line.split(",");
-				if(myArray[0].equals(find)) {
-					return myArray;
-				}
-			}
-			readFile.close();
-			in.close();
-		} catch (FileNotFoundException e) {
-			System.err.println("FileNotFoundException: "
-					+ e.getMessage());
-		} catch (IOException e) {;
-			System.err.println("IOException: " + e.getMessage());
-		}
-		
-		return grouplist;
-		
-	}
-	
-	public static Boolean exist(String find, File textFile) {
-		
-		FileReader in;
-		BufferedReader readFile;
-		String usrnme;
-		ArrayList<String> usrnamelst = new ArrayList<String>();
-		int location;
-		
-		try {
-			in = new FileReader(textFile);
-			readFile = new BufferedReader(in);
-			while ((usrnme = readFile.readLine()) != null ) {
-				String[] myArray = usrnme.split(",");
-				usrnamelst.add(myArray[0]);
-			}
-			readFile.close();
-			in.close();
-		} catch (FileNotFoundException e) {
-			System.err.println("FileNotFoundException: "
-					+ e.getMessage());
-		} catch (IOException e) {;
-			System.err.println("IOException: " + e.getMessage());
-		}
-		
-		Sorts.mergesort(usrnamelst, 0, usrnamelst.size()-1);
-		
-		location = Searches.binarySearch(usrnamelst, 0, usrnamelst.size()-1, find);
-		
-		
-		if (location == -1) {
-			return false;
-		} else {
+	/**
+	 * Checks if a record exists by querying an API endpoint.
+	 * 
+	 * Contract:
+	 * - Calls the specified API URL via ApiCaller.ApiCaller1()
+	 * - Returns true if the API returns at least one row of data
+	 * - Returns false if the API returns an empty result set
+	 * 
+	 * @param url  Complete API endpoint URL with query parameters
+	 *             Format: "http://localhost:8080/db{N}/GetRowData?table={table_name}&{filters}"
+	 * @return     true if data exists (rows.length > 0), false otherwise
+	 * 
+	 * Implementation details:
+	 * - ApiCaller.ApiCaller1() returns a 2D String array (String[][])
+	 * - Prints the number of returned rows to stdout for debugging
+	 * - Simple length check determines existence (> 0 means exists)
+	 * 
+	 * Current usage (7 call sites):
+	 * 1. LoginPageGUI (2 calls):
+	 *    - Verify username + password combination exists in Credentials table
+	 *    
+	 * 2. RegisterPageGUI (2 calls):
+	 *    - Check if username is already taken before registration
+	 *    
+	 * 3. CreateGroup (1 call):
+	 *    - Validate generated group code is unique (loop until unique code found)
+	 *    
+	 * 4. JoinGroup (2 calls):
+	 *    - Verify group code exists in GroupNames table
+	 *    - Check user is not already a member of the group
+	 * 
+	 * Example usage:
+	 * boolean userExists = Exists.exist(
+	 *     "http://localhost:8080/db2/GetRowData?table=Credentials&username=" + username
+	 * );
+	 */
+	public static Boolean exist(String url) {
+
+		String[][] rows = ApiCaller.ApiCaller1(url);
+
+        int numlength = rows.length;
+		System.out.println(numlength);
+		if ( numlength > 0) {
 			return true;
+		} else {
+			return false;
 		}
-		
 	}
-	
-	public static ArrayList<String[]> contents(File textFile, String indicator) {
 		
-		FileReader in;
-		BufferedReader readFile;
-		String line;
-		ArrayList<String[]> grouplist = new ArrayList<String[]>();
-		int location;
-		
-		try {
-			in = new FileReader(textFile);
-			readFile = new BufferedReader(in);
-			while ((line = readFile.readLine()) != null ) {
-				String[] myArray = line.split(indicator);
-				grouplist.add(myArray);
-			}
-			readFile.close();
-			in.close();
-		} catch (FileNotFoundException e) {
-			System.err.println("FileNotFoundException: "
-					+ e.getMessage());
-		} catch (IOException e) {;
-			System.err.println("IOException: " + e.getMessage());
-		}
-		
-		return grouplist;
-		
-	}
-
-	public static ArrayList<String> contents_STR(File textFile) {
-		
-		FileReader in;
-		BufferedReader readFile;
-		String line;
-		ArrayList<String> grouplist = new ArrayList<String>();
-		int location;
-		
-		try {
-			in = new FileReader(textFile);
-			readFile = new BufferedReader(in);
-			while ((line = readFile.readLine()) != null ) {
-				grouplist.add(line);
-			}
-			readFile.close();
-			in.close();
-		} catch (FileNotFoundException e) {
-			System.err.println("FileNotFoundException: "
-					+ e.getMessage());
-		} catch (IOException e) {;
-			System.err.println("IOException: " + e.getMessage());
-		}
-		
-		return grouplist;
-		
-	}
-	
 }
