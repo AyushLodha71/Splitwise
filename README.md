@@ -101,18 +101,13 @@ src/splitwiseapplication/
 ├── Main Interface
 │   └── MainPage.java
 │
-├── Utilities
-│   ├── ApiCaller.java
-│   ├── Exists.java
-│   ├── Member_Info.java
-│   ├── Sorts.java (unused)
-│   ├── Searches.java (unused)
-│   └── UpdateFile.java (unused)
-│
-└── Data Storage
-    ├── credentials.txt
-    ├── groups.txt
-    └── [User/Group Folders]
+└── Utilities
+    ├── ApiCaller.java
+    ├── Exists.java
+    ├── Member_Info.java
+    ├── Sorts.java (unused)
+    ├── Searches.java (unused)
+    └── UpdateFile.java (unused)
 ```
 
 ## Code Documentation
@@ -125,21 +120,7 @@ All 19 main application files have comprehensive contract-style documentation in
 - Parameter and return value descriptions
 - Algorithm explanations for complex logic
 - Known bugs and limitations documented
-- Unused code marked with ⚠️ warnings
 - Usage locations referenced
-
-## Known Issues
-
-### Bugs
-1. **DeleteTransaction.java**: ArrayIndexOutOfBoundsException risk in Repay() method when API returns empty arrays
-2. **LoginPageGUI.java**: Eye icons for password visibility may not display correctly
-
-### Unused Code
-- `containsValue()` method appears in multiple files but never called
-- `Sorts.java` - entire class unused
-- `Searches.java` - entire class unused
-- `UpdateFile.java` - entire legacy class unused
-- Multiple unused variables (options, fileLoc, mmbrl, rowData, etc.)
 
 ## Running the Application
 
@@ -148,7 +129,7 @@ All 19 main application files have comprehensive contract-style documentation in
 - MySQL database installed and running
 - Spring Boot backend configured and running on localhost:8080
   - **Clone and setup backend**: [https://github.com/AyushLodha71/Database](https://github.com/AyushLodha71/Database)
-  - Follow backend repository instructions to set up MySQL databases (db1-db8)
+  - Setup MySQL Databases with a few tables (Message me for guidance)
 - Backend databases (db1-db8) configured and accessible
 
 ### Execution
