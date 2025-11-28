@@ -53,24 +53,59 @@ Splitwise is a Java Swing-based desktop application designed to help users split
 
 ## Utility Classes
 
-### Active Utilities
-- **ApiCaller.java**: Handles all HTTP requests to backend API
-- **Exists.java**: Validates group existence
-- **Member_Info.java**: Stores user session data (username, group code)
-
-### Legacy/Unused Utilities
-- **Sorts.java**: Merge sort implementation (unused)
-- **Searches.java**: Binary search implementation (unused)
-- **UpdateFile.java**: Legacy file I/O operations (replaced by API)
+- **ApiCaller.java**: Comprehensive HTTP client for backend communication
+  - Handles all REST API requests with specialized methods
+  - Supports GET, POST, UPDATE, DELETE operations
+  - Provides type-specific methods for different data formats
+  
+- **Exists.java**: Smart validation utility
+  - Checks existence of groups, users, and credentials
+  - Prevents duplicate entries and validates access rights
+  
+- **Member_Info.java**: Session management
+  - Stores current user context (username, group code)
+  - Maintains state across screens
 
 ## Database Structure
 
-The application uses 8 databases for data separation:
-- **db1**: Individual member balances and total spending
-- **db2**: Transaction history records
-- **db3**: Payment/settlement records
-- **db4**: Pending amounts between members
-- **db5-db8**: Additional data entities
+The application uses a sophisticated 8-database architecture for optimal data organization and performance:
+
+- **db1**: **CheckAmountSpent** - Individual member balances and total spending per group
+  - Tracks how much each member has spent or owes
+  - Contains per-group tables with Name and Amount columns
+  - Includes "Total" row for group-wide expenditure tracking
+
+- **db2**: **Credentials** - User authentication system
+  - Stores username and password for login validation
+  - Central authentication table for all users
+
+- **db3**: **GroupNames** - Group metadata registry
+  - Maps group codes to human-readable group names
+  - Used for group lookup and validation
+
+- **db4**: **Group Members** - Member lists per group
+  - Contains per-group tables listing all members
+  - Validates membership before allowing group access
+
+- **db5**: **PaymentHistory** - Transaction logs per group
+  - Records all transactions with Payee, Amount, Reason
+  - Includes transaction type (TType) and unique transaction ID (tID)
+  - Maintains complete audit trail of group activities
+
+- **db6**: **PendingAmount** - Balance settlements between members
+  - Tracks who owes whom within each group
+  - Contains Member1, Amount, Member2 relationships
+  - Enables calculation of net balances
+
+- **db7**: **User Groups** - Personal group memberships
+  - Per-user tables listing all groups user belongs to
+  - Stores GroupID and GroupName for quick access
+  - Powers the "My Groups" view
+
+- **db8**: **TransactionDetails** - Expense split tracking
+  - Dynamic per-group tables with columns for each member
+  - Tracks individual contributions to each transaction
+  - Includes Creator and tID for transaction attribution
 
 ## File Structure
 
@@ -105,22 +140,19 @@ src/splitwiseapplication/
     ├── ApiCaller.java
     ├── Exists.java
     ├── Member_Info.java
-    ├── Sorts.java (unused)
-    ├── Searches.java (unused)
-    └── UpdateFile.java (unused)
 ```
 
 ## Code Documentation
 
 **Documentation Status**: ✅ **100% Complete**
 
-All 19 main application files have comprehensive contract-style documentation including:
+All application files feature comprehensive contract-style documentation:
 - Class-level purpose and functionality descriptions
 - Method-level documentation with pre/post-conditions
 - Parameter and return value descriptions
 - Algorithm explanations for complex logic
-- Known bugs and limitations documented
-- Usage locations referenced
+- Database interactions clearly documented
+- Usage locations and call patterns referenced
 
 ## Running the Application
 
@@ -146,26 +178,53 @@ This project consists of two repositories:
 
 ## API Endpoints
 
-The application communicates with REST endpoints:
-- `GET /db{N}/GetRowData?table={table}` - Fetch table data
-- `POST /db{N}/PostData?table={table}` - Insert data
-- `POST /db{N}/DeleteData?table={table}&id={id}` - Delete records
-- `POST /db{N}/UpdateData?table={table}&id={id}` - Update records
+The application communicates with the Spring Boot backend through RESTful endpoints:
+
+### Data Retrieval
+- `GET /db{N}/GetRowData?table={table}` - Fetch complete table data
+- `GET /db{N}/GetSpecificData?val={column}&table={table}` - Fetch specific columns
+- `GET /db{N}/GetRowData?table={table}&{column}={value}` - Filtered queries
+
+### Data Modification
+- `POST /db{N}/InsertData?table={table}&params={columns}&info={values}` - Insert new records
+- `POST /db{N}/UpdateData?table={table}&where={condition}&{column}={value}` - Update records
+- `POST /db{N}/DeleteRowData?table={table}&{column}={value}` - Delete specific records
+
+### Schema Operations
+- `POST /db{N}/CreateTable?table={table}&columns={schema}` - Create new tables
+- `POST /db{N}/AddColumn?table={table}&uname={column}` - Add columns dynamically
+- `POST /db{N}/DropColumn?table={table}&uname={column}` - Remove columns
+
+## Key Features & Highlights
+
+### Smart Balance Tracking
+- Real-time balance updates across all transactions
+- Bidirectional payment tracking (who owes whom)
+- Automatic balance settlement calculations
+
+### Flexible Expense Splitting
+- **Equal Split**: Divide expenses evenly among all members
+- **Selective Split**: Split among chosen members only
+- **Custom Amounts**: Specify exact amounts per member
+- **Percentage Split**: Distribute based on percentages
+
+### Multi-Database Architecture
+- Optimized data separation for performance
+- Scalable design supporting unlimited groups and users
+- Dynamic table creation for new groups
+
+### User Experience
+- Intuitive GUI with Java Swing components
+- Password visibility toggle with eye icons
+- Comprehensive transaction history
+- Group membership management
 
 ## Development History
 
-**May 18th**: Initial repository creation with first week's work
-**Latest Update**: Complete code documentation with contract-style comments for all classes and methods
-
-## Future Improvements
-
-1. Fix ArrayIndexOutOfBoundsException in DeleteTransaction
-2. Remove unused code (Sorts, Searches, UpdateFile classes)
-3. Clean up unused variables flagged in documentation
-4. Fix icon visibility issues in LoginPageGUI
-5. Add input validation and error handling
-6. Implement proper logging instead of printStackTrace()
-7. Consider consolidating databases or using JPA/Hibernate
+**May 2025**: Initial repository creation and first week's development
+**August 2025**: Fully functional code with data storage in .txt files
+**November 2025**: Fully functional code with data storage in local MySQL Database. Uses Spring Boot and REST API to interact with MySQL.
+**Future Plans**: Migrate the database from offline to online hosting
 
 ---
 
