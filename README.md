@@ -177,7 +177,7 @@ All application files feature comprehensive contract-style documentation:
 3. Start tracking expenses!
 
 ### System Requirements
-- **Java**: Version 11 or higher ([Download Java](https://www.oracle.com/java/technologies/downloads/))
+- **Java**: Version 22 or higher ([Download Java](https://www.oracle.com/java/technologies/downloads/))
 - **Internet Connection**: Required to connect to Railway backend
 - **Operating System**: Windows, macOS, or Linux
 
