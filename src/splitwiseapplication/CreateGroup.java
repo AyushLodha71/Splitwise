@@ -260,7 +260,7 @@ public class CreateGroup implements ActionListener{
 	            int index = random.nextInt(characters.length());
 	            newcode += characters.charAt(index);
 	        }
-		} while (Exists.exist("http://localhost:8080/db3/GetRowData?table=group_list&group_code=" + newcode) == false);
+		} while (Exists.exist("https://splitwise.up.railway.app/db3/GetRowData?table=group_list&group_code=" + newcode) == false);
 		return newcode;
 		
 	}
@@ -319,7 +319,7 @@ public class CreateGroup implements ActionListener{
 	 * - "Total" record in db1 tracks overall group balance
 	 * 
 	 * URL ENCODING:
-	 * Uses %20 for spaces, %2C for commas in SQL statements sent via HTTP.
+	 * Uses %20 for spaces, %2C for commas in SQL statements sent via HTTPS.
 	 * 
 	 * USAGE:
 	 * Called by actionPerformed() after code generation.
@@ -330,17 +330,17 @@ public class CreateGroup implements ActionListener{
 	 */
 	public void AddNewGroup(String gcode, String gname) {
 		
-		ApiCaller.ApiCaller1("http://localhost:8080/db4/CreateTable?table="+gcode+"&columns=id%20INT%20AUTO_INCREMENT%20PRIMARY%20KEY,%20name%20VARCHAR(100)%20NOT%20NULL");
-		ApiCaller.ApiCaller1("http://localhost:8080/db5/CreateTable?table="+gcode+"&columns=id%20INT%20AUTO_INCREMENT%20PRIMARY%20KEY%2C%20Payee%20VARCHAR(100)%20NOT%20NULL%2C%20Amount%20DECIMAL(10%2C2)%20NOT%20NULL%2C%20Reason%20VARCHAR(100)%20NOT%20NULL%2C%20TType%20INT%20NOT%20NULL%2C%20tID%20VARCHAR(100)%20COLLATE%20utf8mb4_bin%20NOT%20NULL");
-		ApiCaller.ApiCaller1("http://localhost:8080/db6/CreateTable?table="+gcode+"&columns=id%20INT%20AUTO_INCREMENT%20PRIMARY%20KEY,%20Member1%20VARCHAR(100)%20NOT%20NULL,%20Amount%20DECIMAL(10%2C2)%20NOT%20NULL,%20Member2%20VARCHAR(100)%20NOT%20NULL");
-		ApiCaller.ApiCaller1("http://localhost:8080/db1/CreateTable?table="+gcode+"&columns=id%20INT%20AUTO_INCREMENT%20PRIMARY%20KEY,%20Name%20VARCHAR(100)%20NOT%20NULL,%20Amount%20DECIMAL(10%2C2)%20NOT%20NULL");
-		ApiCaller.ApiCaller1("http://localhost:8080/db8/CreateTable?table="+gcode+"&columns=id%20INT%20AUTO_INCREMENT%20PRIMARY%20KEY,%20Creator%20VARCHAR(100)%20,%20tID%20VARCHAR(100)%20COLLATE%20utf8mb4_bin,"+uname+"%20DECIMAL(10%2C2)%20NOT%20NULL");
+		ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db4/CreateTable?table="+gcode+"&columns=id%20INT%20AUTO_INCREMENT%20PRIMARY%20KEY,%20name%20VARCHAR(100)%20NOT%20NULL");
+		ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db5/CreateTable?table="+gcode+"&columns=id%20INT%20AUTO_INCREMENT%20PRIMARY%20KEY%2C%20Payee%20VARCHAR(100)%20NOT%20NULL%2C%20Amount%20DECIMAL(10%2C2)%20NOT%20NULL%2C%20Reason%20VARCHAR(100)%20NOT%20NULL%2C%20TType%20INT%20NOT%20NULL%2C%20tID%20VARCHAR(100)%20COLLATE%20utf8mb4_bin%20NOT%20NULL");
+		ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db6/CreateTable?table="+gcode+"&columns=id%20INT%20AUTO_INCREMENT%20PRIMARY%20KEY,%20Member1%20VARCHAR(100)%20NOT%20NULL,%20Amount%20DECIMAL(10%2C2)%20NOT%20NULL,%20Member2%20VARCHAR(100)%20NOT%20NULL");
+		ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db1/CreateTable?table="+gcode+"&columns=id%20INT%20AUTO_INCREMENT%20PRIMARY%20KEY,%20Name%20VARCHAR(100)%20NOT%20NULL,%20Amount%20DECIMAL(10%2C2)%20NOT%20NULL");
+		ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db8/CreateTable?table="+gcode+"&columns=id%20INT%20AUTO_INCREMENT%20PRIMARY%20KEY,%20Creator%20VARCHAR(100)%20,%20tID%20VARCHAR(100)%20COLLATE%20utf8mb4_bin,"+uname+"%20DECIMAL(10%2C2)%20NOT%20NULL");
 		
-		ApiCaller.ApiCaller1("http://localhost:8080/db3/InsertData?table=GroupNames&params=(group_name,group_code)&info=('" + gname + "','" + gcode + "')");
-		ApiCaller.ApiCaller1("http://localhost:8080/db4/InsertData?table="+gcode+"&params=(name)&info=('" + uname + "')");
-		ApiCaller.ApiCaller1("http://localhost:8080/db7/InsertData?table="+uname+"&params=(GroupID,GroupName)&info=('" + gcode + "','" + gname + "')");
-		ApiCaller.ApiCaller1("http://localhost:8080/db1/InsertData?table="+gcode+"&params=(Name,Amount)&info=('Total',0)");
-		ApiCaller.ApiCaller1("http://localhost:8080/db1/InsertData?table="+gcode+"&params=(Name,Amount)&info=('" + uname + "',0)");
+		ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db3/InsertData?table=GroupNames&params=(group_name,group_code)&info=('" + gname + "','" + gcode + "')");
+		ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db4/InsertData?table="+gcode+"&params=(name)&info=('" + uname + "')");
+		ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db7/InsertData?table="+uname+"&params=(GroupID,GroupName)&info=('" + gcode + "','" + gname + "')");
+		ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db1/InsertData?table="+gcode+"&params=(Name,Amount)&info=('Total',0)");
+		ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db1/InsertData?table="+gcode+"&params=(Name,Amount)&info=('" + uname + "',0)");
 		
 	}
 	

@@ -256,7 +256,7 @@ public class RegisterPageGUI implements ActionListener{
 		if (eventName == "Submit") {
 			String usrname = username.getText();
 			String pwd = password.getText();
-			if (Exists.exist("http://localhost:8080/db2/GetRowData?table=Credentials&username=" + usrname) == false) {
+			if (Exists.exist("https://splitwise.up.railway.app/db2/GetRowData?table=Credentials&username=" + usrname) == false) {
 				AddNewUser(usrname,pwd);
 				Groups groups = new Groups(usrname);
 				groups.runGUI();
@@ -281,7 +281,7 @@ public class RegisterPageGUI implements ActionListener{
 		}else if (eventName.equals("Submitted")) {
 			String usrname = username.getText();
 			String pwd = password.getText();
-			if (Exists.exist("http://localhost:8080/db2/GetRowData?table=Credentials&username=" + usrname) == false) {
+			if (Exists.exist("https://splitwise.up.railway.app/db2/GetRowData?table=Credentials&username=" + usrname) == false) {
 				AddNewUser(usrname,pwd);
 				Groups groups = new Groups(usrname);
 				groups.runGUI();
@@ -419,8 +419,9 @@ public class RegisterPageGUI implements ActionListener{
 	public void AddNewUser(String uname, String psswd) {
 		
 		// Adding Username and Password to  credentials.txt
-		ApiCaller.ApiCaller1("http://localhost:8080/db2/InsertData?table=Credentials&params=(username,password)&info=('" + uname + "','" + psswd + "')");
-		ApiCaller.ApiCaller1("http://localhost:8080/db7/CreateTable?table="+uname+"&columns=GroupID%20VARCHAR(50)%20PRIMARY%20KEY,%20GroupName%20VARCHAR(100)");
+		String val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db2/InsertData?table=Credentials&params=(username,password)&info=('" + uname + "','" + psswd + "')");
+		System.out.println("val");
+		ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db7/CreateTable?table="+uname+"&columns=GroupID%20VARCHAR(50)%20PRIMARY%20KEY,%20GroupName%20VARCHAR(100)");
 	 
 	}
 	

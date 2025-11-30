@@ -267,7 +267,7 @@ public class LoginPageGUI implements ActionListener{
 		} else if (eventName.equals("Submit")) {
 			String usrname = username.getText();
 			String pwd = password.getText();
-			if (Exists.exist("http://localhost:8080/db2/GetRowData?table=Credentials&username=" + usrname + "&password=" + pwd) == true) {
+			if (Exists.exist("https://splitwise.up.railway.app/db2/GetRowData?table=Credentials&username=" + usrname + "&password=" + pwd) == true) {
 				Groups groups = new Groups(usrname);
 				groups.runGUI();
 				frame.dispose();
@@ -287,7 +287,7 @@ public class LoginPageGUI implements ActionListener{
 		} else if (eventName.equals("Submitted")) {
 			String usrname = username.getText();
 			String pwd = password.getText();
-			if (Exists.exist("http://localhost:8080/db2/GetRowData?table=Credentials&username=" + usrname + "&password=" + pwd) == true) {
+			if (Exists.exist("https://splitwise.up.railway.app/db2/GetRowData?table=Credentials&username=" + usrname + "&password=" + pwd) == true) {
 				Groups groups = new Groups(usrname);
 				groups.runGUI();
 				frame.dispose();

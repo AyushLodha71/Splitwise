@@ -161,7 +161,7 @@ public class CheckBalances implements ActionListener{
 		contentPane.setLayout(new GridLayout(0, 1, 10, 5));
 		contentPane.setBorder(BorderFactory.createEmptyBorder(20,50,20,50));
 		
-		members = new ArrayList<>(Arrays.asList(ApiCaller.ApiCaller3("http://localhost:8080/db4/GetSpecificData?val=name&table="+ grpcode)));
+		members = new ArrayList<>(Arrays.asList(ApiCaller.ApiCaller3("https://splitwise.up.railway.app/db4/GetSpecificData?val=name&table="+ grpcode)));
 		
 		System.out.println(members);
 		
@@ -183,19 +183,22 @@ public class CheckBalances implements ActionListener{
 		back.setActionCommand("Back");
 		contentPane.add(back);
 		
-		PACombinations = new ArrayList<>(Arrays.asList(ApiCaller.ApiCaller1("http://localhost:8080/db6/GetRowData?table="+ grpcode)));
+		PACombinations = new ArrayList<>(Arrays.asList(ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db6/GetRowData?table="+ grpcode)));
 		
 		for (int i = 1; i < PACombinations.size(); i++) {
 			String[] t = PACombinations.get(i);
 			System.out.println(t[3]);
 			double amount = Double.parseDouble(t[2]);
 			if (amount > 0) {
-				info.get(members.indexOf(t[1].trim())).addMembers(t[3].trim() + " owes " + amount);
-				info.get(members.indexOf(t[3].trim())).addMembers("You owe " + amount + " to " + t[1].trim());
+				info.get(members.indexOf(t[1])).addMembers(t[3] + " owes " + amount + " to " + t[1]);
+				info.get(members.indexOf(t[3])).addMembers(t[3] + " owes " + amount + " to " + t[1]);
 			} else if (amount < 0) {
 				double positiveAmount = -amount;
-				info.get(members.indexOf(t[3].trim())).addMembers(t[1].trim() + " owes " + positiveAmount);
-				info.get(members.indexOf(t[1].trim())).addMembers("You owe " + positiveAmount + " to " + t[3].trim());
+				info.get(members.indexOf(t[3])).addMembers(t[1] + " owes " + positiveAmount + " to " + t[3]);
+				info.get(members.indexOf(t[1])).addMembers(t[1] + " owes " + positiveAmount + " to " + t[3]);
+			} else{
+				info.get(members.indexOf(t[3])).addMembers("Settled with " + t[1]);
+				info.get(members.indexOf(t[1])).addMembers("Settled with " + t[3]);
 			}
 		}
 		

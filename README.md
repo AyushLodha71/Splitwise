@@ -1,19 +1,29 @@
 # Splitwise - Expense Splitting Application
 
+[![Java](https://img.shields.io/badge/Java-11%2B-orange.svg)](https://www.oracle.com/java/technologies/downloads/)
+[![Railway](https://img.shields.io/badge/Deployed%20on-Railway-blueviolet.svg)](https://railway.app/)
+[![Backend](https://img.shields.io/badge/Backend-Spring%20Boot-green.svg)](https://spring.io/projects/spring-boot)
+[![Database](https://img.shields.io/badge/Database-MySQL-blue.svg)](https://www.mysql.com/)
+
 ## Project Overview
 
 Splitwise is a Java Swing-based desktop application designed to help users split expenses among group members, track balances, and settle payments. The application features a comprehensive GUI with multiple screens for managing groups, transactions, and viewing balances.
+
+### ⚡ Quick Start
+Download `Splitwise.jar` and run it - no installation or setup required! The application connects to a cloud-hosted backend for seamless expense tracking.
 
 ## Architecture
 
 ### Technology Stack
 - **Frontend**: Java Swing (Desktop GUI)
-- **Backend**: Spring Boot REST API (localhost:8080)
+- **Backend**: Spring Boot REST API hosted on Railway
+  - **Live API**: [https://splitwise.up.railway.app](https://splitwise.up.railway.app)
   - **Backend Repository**: [https://github.com/AyushLodha71/Database](https://github.com/AyushLodha71/Database)
   - Contains Spring Boot application with REST endpoints
-  - Connects to MySQL database
-- **HTTP Client**: java.net.http.HttpClient
-- **Database**: MySQL with 8 separate databases (db1-db8) for different data entities
+  - Deployed on Railway platform with MySQL database
+- **HTTPS Client**: java.net.http.HttpClient (all connections use secure HTTPS)
+- **Database**: MySQL hosted on Railway with 8 separate databases (db1-db8) for different data entities
+- **Deployment**: Cloud-hosted backend on Railway platform for 24/7 availability
 
 ### Design Pattern
 - **Two-step initialization**: Constructor builds UI → runGUI() displays frame
@@ -53,8 +63,9 @@ Splitwise is a Java Swing-based desktop application designed to help users split
 
 ## Utility Classes
 
-- **ApiCaller.java**: Comprehensive HTTP client for backend communication
+- **ApiCaller.java**: Comprehensive HTTPS client for backend communication
   - Handles all REST API requests with specialized methods
+  - Communicates with Railway-hosted Spring Boot backend
   - Supports GET, POST, UPDATE, DELETE operations
   - Provides type-specific methods for different data formats
   
@@ -110,36 +121,40 @@ The application uses a sophisticated 8-database architecture for optimal data or
 ## File Structure
 
 ```
-src/splitwiseapplication/
-├── Authentication & Entry
-│   ├── SplitwiseApplicationMain.java
-│   ├── LoginOrRegister.java
-│   ├── LoginPageGUI.java
-│   └── RegisterPageGUI.java
-│
-├── Group Management
-│   ├── Groups.java
-│   ├── CreateGroup.java
-│   ├── JoinGroup.java
-│   └── EnterGroup.java
-│
-├── Transaction Management
-│   ├── AddTransaction.java
-│   ├── DeleteTransaction.java
-│   └── SettlePayment.java
-│
-├── Balance & Reports
-│   ├── CheckBalances.java
-│   ├── CheckAmountSpent.java
-│   └── AmountSettled.java
-│
-├── Main Interface
-│   └── MainPage.java
-│
-└── Utilities
-    ├── ApiCaller.java
-    ├── Exists.java
-    ├── Member_Info.java
+Splitwise/
+├── Splitwise.jar                    # Executable JAR file (ready to run)
+├── README.md                        # Project documentation
+├── src/splitwiseapplication/        # Source code
+│   ├── Authentication & Entry
+│   │   ├── SplitwiseApplicationMain.java
+│   │   ├── LoginOrRegister.java
+│   │   ├── LoginPageGUI.java
+│   │   └── RegisterPageGUI.java
+│   │
+│   ├── Group Management
+│   │   ├── Groups.java
+│   │   ├── CreateGroup.java
+│   │   ├── JoinGroup.java
+│   │   └── EnterGroup.java
+│   │
+│   ├── Transaction Management
+│   │   ├── AddTransaction.java
+│   │   ├── DeleteTransaction.java
+│   │   └── SettlePayment.java
+│   │
+│   ├── Balance & Reports
+│   │   ├── CheckBalances.java
+│   │   ├── CheckAmountSpent.java
+│   │   └── AmountSettled.java
+│   │
+│   ├── Main Interface
+│   │   └── MainPage.java
+│   │
+│   └── Utilities
+│       ├── ApiCaller.java
+│       ├── Exists.java
+│       └── Member_Info.java
+└── bin/                             # Compiled class files
 ```
 
 ## Code Documentation
@@ -156,25 +171,91 @@ All application files feature comprehensive contract-style documentation:
 
 ## Running the Application
 
-### Prerequisites
-- Java 11 or higher
-- MySQL database installed and running
-- Spring Boot backend configured and running on localhost:8080
-  - **Clone and setup backend**: [https://github.com/AyushLodha71/Database](https://github.com/AyushLodha71/Database)
-  - Setup MySQL Databases with a few tables (Message me for guidance)
-- Backend databases (db1-db8) configured and accessible
+### Quick Start (Easiest Method)
+1. Download `Splitwise.jar`
+2. Double-click to run (or use: `java -jar Splitwise.jar`)
+3. Start tracking expenses!
 
-### Execution
-1. **Start MySQL database** with required databases (db1-db8)
-2. **Start Spring Boot backend** from the [Database repository](https://github.com/AyushLodha71/Database)
-3. **Run this application**: Execute `SplitwiseApplicationMain.java` as main class
-4. Choose Login or Register from entry screen
+### System Requirements
+- **Java**: Version 11 or higher ([Download Java](https://www.oracle.com/java/technologies/downloads/))
+- **Internet Connection**: Required to connect to Railway backend
+- **Operating System**: Windows, macOS, or Linux
+
+### Option 1: Run Executable JAR (Recommended)
+The easiest way to run the application is using the pre-built JAR file:
+
+1. **Download**: `Splitwise.jar` from this repository
+2. **Run**: Double-click the JAR file, or run from terminal:
+   ```bash
+   java -jar Splitwise.jar
+   ```
+3. **Start using**: The application connects automatically to the cloud-hosted backend
+4. No additional setup required - backend and database are already hosted on Railway
+
+### Option 2: Run from Source Code
+
+#### Prerequisites
+- Java 11 or higher
+- IDE (Eclipse, IntelliJ IDEA, or VS Code with Java extensions)
+
+#### Execution
+1. **Clone this repository**
+   ```bash
+   git clone https://github.com/AyushLodha71/Splitwise.git
+   ```
+2. **Open project** in your IDE
+3. **Run**: Execute `SplitwiseApplicationMain.java` as main class
+4. **Start using**: Choose Login or Register from entry screen
 5. After authentication, navigate through Groups and MainPage
 
+### Backend Information
+- **Backend is cloud-hosted on Railway** - No local setup needed
+- **Database is online** - Accessible from anywhere
+- **API Endpoint**: https://splitwise.up.railway.app
+- **Backend Repository**: [https://github.com/AyushLodha71/Database](https://github.com/AyushLodha71/Database)
+
+### First Time Users
+1. Launch the application
+2. Click "Register" to create a new account
+3. Enter username and password
+4. Login with your credentials
+5. Create or join expense groups
+6. Start splitting expenses!
+
 ### Project Structure
-This project consists of two repositories:
+This project consists of two components:
 1. **Frontend (this repository)**: Java Swing desktop application
-2. **Backend**: [https://github.com/AyushLodha71/Database](https://github.com/AyushLodha71/Database) - Spring Boot REST API with MySQL integration
+   - Available as executable JAR file (`Splitwise.jar`)
+   - Source code in `src/splitwiseapplication/`
+2. **Backend**: [https://github.com/AyushLodha71/Database](https://github.com/AyushLodha71/Database)
+   - Spring Boot REST API deployed on Railway
+   - MySQL database hosted on Railway
+   - Accessible at: https://splitwise.up.railway.app
+
+## Cloud Architecture & Deployment
+
+### Railway Platform
+The application backend and database are deployed on **Railway**, a modern cloud platform that provides:
+- **24/7 Availability**: Backend runs continuously without manual intervention
+- **Managed MySQL Database**: Railway handles database hosting, backups, and scaling
+- **Automatic HTTPS**: Secure encrypted communication between frontend and backend
+- **Zero Configuration**: No local backend setup required for end users
+
+### Connection Flow
+```
+Desktop Application (Splitwise.jar)
+          ↓ HTTPS
+Railway Backend (splitwise.up.railway.app)
+          ↓ MySQL Connection
+Railway MySQL Database (8 databases: db1-db8)
+```
+
+### Benefits of Cloud Deployment
+- **Easy Distribution**: Users only need Java installed - no database or backend setup
+- **Cross-Platform**: Works on Windows, macOS, and Linux
+- **Data Accessibility**: Access your expense data from any device running the application
+- **Automatic Updates**: Backend updates deployed without requiring user action
+- **Scalability**: Railway infrastructure handles multiple concurrent users
 
 ## API Endpoints
 
@@ -214,19 +295,22 @@ The application communicates with the Spring Boot backend through RESTful endpoi
 - Dynamic table creation for new groups
 
 ### User Experience
-- Simple GUI with Java Swing components
+- Simple and intuitive GUI with Java Swing components
 - Password visibility toggle with eye icons
 - Comprehensive transaction history
 - Group membership management
+- **Executable JAR for easy deployment** - No installation needed
+- **Cloud connectivity** - Access your data from anywhere
 
 ## Development History
 
 - **May 2025**: Initial repository creation and first week's development
 - **August 2025**: Fully functional code with data storage in .txt files
-- **November 2025**: Fully functional code with data storage in local MySQL Database. Uses Spring Boot and REST API to interact with MySQL.
-- **Future Plans**: 
-  1. Migrate the database from offline to online hosting.
-  2. Add Encryption to Password.
+- **November 2025**: 
+  - Migrated to MySQL database with Spring Boot REST API
+  - Deployed backend and database to Railway cloud platform
+  - Created executable JAR file for easy distribution
+  - Application now fully cloud-enabled with 24/7 availability
 
 ---
 

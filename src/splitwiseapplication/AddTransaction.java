@@ -265,7 +265,7 @@ public class AddTransaction implements ActionListener {
 	public void actionPerformed(ActionEvent event) {
 		
 		String eventName = event.getActionCommand();
-		ArrayList<String> members = new ArrayList<>(Arrays.asList(ApiCaller.ApiCaller3("http://localhost:8080/db4/GetSpecificData?val=name&table="+ code)));
+		ArrayList<String> members = new ArrayList<>(Arrays.asList(ApiCaller.ApiCaller3("https://splitwise.up.railway.app/db4/GetSpecificData?val=name&table="+ code)));
 		
 		
 		if (eventName.equals("Enter") == true ) {
@@ -276,14 +276,14 @@ public class AddTransaction implements ActionListener {
 				response.setText("Enter valid values");
 			} else {
 				
-				String[] lst = ApiCaller.ApiCaller3("http://localhost:8080/db5/GetSpecificData?val=tID&table="+ code);
+				String[] lst = ApiCaller.ApiCaller3("https://splitwise.up.railway.app/db5/GetSpecificData?val=tID&table="+ code);
 				System.out.println(lst.length);
 
-				ArrayList<String> usedCodes = new ArrayList<>(Arrays.asList(ApiCaller.ApiCaller3("http://localhost:8080/db8/GetSpecificData?val=tID&table=" + code)));
+				ArrayList<String> usedCodes = new ArrayList<>(Arrays.asList(ApiCaller.ApiCaller3("https://splitwise.up.railway.app/db8/GetSpecificData?val=tID&table=" + code)));
 				
 				tID = createCode(usedCodes);
 
-				String value = ApiCaller.ApiCaller2("http://localhost:8080/db5/InsertData?table="+ code +"&params=(payee,amount,reason,Ttype,tid)&info=(%27" + uname + "%27," + amountVal + ",%27" + reasonVal + "%27," + 0 + ",%27" + tID + "%27)");
+				String value = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db5/InsertData?table="+ code +"&params=(payee,amount,reason,Ttype,tid)&info=(%27" + uname + "%27," + amountVal + ",%27" + reasonVal + "%27," + 0 + ",%27" + tID + "%27)");
 				if (options.getSelectedItem() == "All Equally"){
 					UpdatePAEqually(Double.parseDouble(amountVal));
 					response = new JLabel("Transaction added");
@@ -428,30 +428,30 @@ public class AddTransaction implements ActionListener {
 	public void UpdatePAEqually (double cost) {
 		
 		
-		String[][] people = ApiCaller.ApiCaller1("http://localhost:8080/db1/GetRowData?table="+ code);
+		String[][] people = ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db1/GetRowData?table="+ code);
 		
 		double costPP = (double)cost/(double)(people.length-2);
 
-		String[][] member1 = ApiCaller.ApiCaller1("http://localhost:8080/db6/GetRowData?table="+ code +"&Member1="+uname);
-		String[][] member2 = ApiCaller.ApiCaller1("http://localhost:8080/db6/GetRowData?table="+ code +"&Member2="+uname);
+		String[][] member1 = ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db6/GetRowData?table="+ code +"&Member1="+uname);
+		String[][] member2 = ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db6/GetRowData?table="+ code +"&Member2="+uname);
 		for (int i = 1; i < member1.length; i++) {
 
-			String val = ApiCaller.ApiCaller2("http://localhost:8080/db6/UpdateData?table="+ code +"&where=Member1=%27" + uname + "%27&Amount=" + Double.toString((double)(Double.parseDouble(member1[i][2]) + costPP)));
+			String val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db6/UpdateData?table="+ code +"&where=Member1=%27" + uname + "%27&Amount=" + Double.toString((double)(Double.parseDouble(member1[i][2]) + costPP)));
 
 		}
 
 		for (int i = 1; i < member2.length; i++) {
 
-			String val = ApiCaller.ApiCaller2("http://localhost:8080/db6/UpdateData?table="+ code +"&where=Member2=%27" + uname + "%27&Amount=" + Double.toString((double)(Double.parseDouble(member2[i][2]) - costPP)));
+			String val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db6/UpdateData?table="+ code +"&where=Member2=%27" + uname + "%27&Amount=" + Double.toString((double)(Double.parseDouble(member2[i][2]) - costPP)));
 
 		}
 
-		String val1 = ApiCaller.ApiCaller2("http://localhost:8080/db1/UpdateData?table="+ code +"&where=id=" + (1) + "&Amount=" + Double.toString((double)(Double.parseDouble(people[1][2]) + cost)));
+		String val1 = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db1/UpdateData?table="+ code +"&where=id=" + (1) + "&Amount=" + Double.toString((double)(Double.parseDouble(people[1][2]) + cost)));
 		String params = "&params=(Creator,tID,";
 		String info = "&info=(%27"+uname+"%27,%27"+tID+"%27,";
 		for (int i = 2; i < people.length; i++) {
 
-			String val = ApiCaller.ApiCaller2("http://localhost:8080/db1/UpdateData?table="+ code +"&where=Name=%27" + people[i][1] + "%27&Amount=" + Double.toString((double)(Double.parseDouble(people[i][2]) + costPP)));
+			String val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db1/UpdateData?table="+ code +"&where=Name=%27" + people[i][1] + "%27&Amount=" + Double.toString((double)(Double.parseDouble(people[i][2]) + costPP)));
 			if (people[i][1].equals(uname)) {
 				params += uname + ",";
 				info += Double.toString((double)(costPP - cost)) + ",";
@@ -464,7 +464,7 @@ public class AddTransaction implements ActionListener {
 
 		params = params.substring(0, params.length() - 1) + ")";
 		info = info.substring(0, info.length() - 1) + ")";
-		String val = ApiCaller.ApiCaller2("http://localhost:8080/db8/InsertData?table="+ code + params + info);
+		String val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db8/InsertData?table="+ code + params + info);
 
 	}
 	
@@ -500,7 +500,7 @@ public class AddTransaction implements ActionListener {
 	 */
 	public void UpdatePAEqBySome (double cost, ArrayList<String> names, ArrayList<Integer> selected) {
 		
-		String[][] optionsCAS = ApiCaller.ApiCaller1("http://localhost:8080/db1/GetRowData?table="+ code);
+		String[][] optionsCAS = ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db1/GetRowData?table="+ code);
 		double sum = 0;
 		
 		for (double i : selected) {
@@ -508,17 +508,17 @@ public class AddTransaction implements ActionListener {
 		}
 		
 		double costPP = (double)cost/(double)sum;
-		String val = ApiCaller.ApiCaller2("http://localhost:8080/db1/UpdateData?table="+ code +"&where=id=" + 1 + "&Amount=" + Double.toString((double)(Double.parseDouble(optionsCAS[1][2]) + cost)));
+		String val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db1/UpdateData?table="+ code +"&where=id=" + 1 + "&Amount=" + Double.toString((double)(Double.parseDouble(optionsCAS[1][2]) + cost)));
 
 		for (int j = 0; j < names.size(); j++) {
 			if (selected.get(j) == 1 && !names.get(j).equals(uname)) {
-				String[][] member1 = ApiCaller.ApiCaller1("http://localhost:8080/db6/GetRowData?table="+ code +"&Member1="+uname +"&Member2="+names.get(j));
-				String[][] member2 = ApiCaller.ApiCaller1("http://localhost:8080/db6/GetRowData?table="+ code +"&Member2="+uname +"&Member1="+names.get(j));
+				String[][] member1 = ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db6/GetRowData?table="+ code +"&Member1="+uname +"&Member2="+names.get(j));
+				String[][] member2 = ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db6/GetRowData?table="+ code +"&Member2="+uname +"&Member1="+names.get(j));
 				if (member1.length != 0) {
-					val = ApiCaller.ApiCaller2("http://localhost:8080/db6/UpdateData?table="+ code +"&where=Member1=%27" + uname + "%27%20AND%20Member2=%27" + names.get(j) + "%27&Amount=" + (Double.toString((double)(Double.parseDouble(member1[1][2]) + costPP))));
+					val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db6/UpdateData?table="+ code +"&where=Member1=%27" + uname + "%27%20AND%20Member2=%27" + names.get(j) + "%27&Amount=" + (Double.toString((double)(Double.parseDouble(member1[1][2]) + costPP))));
 				}
 				if (member2.length != 0) {
-					val = ApiCaller.ApiCaller2("http://localhost:8080/db6/UpdateData?table="+ code +"&where=Member2=%27" + uname + "%27%20AND%20Member1=%27" + names.get(j) + "%27&Amount=" + (Double.toString((double)(Double.parseDouble(member2[1][2]) - costPP))));
+					val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db6/UpdateData?table="+ code +"&where=Member2=%27" + uname + "%27%20AND%20Member1=%27" + names.get(j) + "%27&Amount=" + (Double.toString((double)(Double.parseDouble(member2[1][2]) - costPP))));
 				}
 
 			}
@@ -526,7 +526,7 @@ public class AddTransaction implements ActionListener {
 		
 		for (int i = 0; i < selected.size(); i++) {
 			if(selected.get(i) == 1) {
-				val = ApiCaller.ApiCaller2("http://localhost:8080/db1/UpdateData?table="+ code +"&where=Name=%27" + names.get(i) + "%27&Amount=" + Double.toString((double)(Double.parseDouble(optionsCAS[i+2][2]) + costPP)));
+				val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db1/UpdateData?table="+ code +"&where=Name=%27" + names.get(i) + "%27&Amount=" + Double.toString((double)(Double.parseDouble(optionsCAS[i+2][2]) + costPP)));
 			}
 		}
 		
@@ -553,7 +553,7 @@ public class AddTransaction implements ActionListener {
 
 		transaction = 	transaction.substring(0, transaction.length() - 1) + ")";
 		System.out.println(transaction);
-		String val1 = ApiCaller.ApiCaller2("http://localhost:8080/db8/InsertData?table="+ code +"&params=(Creator,tID," + String.join(",", names) + ")&info=" + transaction);
+		String val1 = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db8/InsertData?table="+ code +"&params=(Creator,tID," + String.join(",", names) + ")&info=" + transaction);
 		
 	}
 	
@@ -587,27 +587,27 @@ public class AddTransaction implements ActionListener {
 	 */
 	public void UpdatePAUnequally(double cost, ArrayList<Double> amounts, ArrayList<String> names) {
 		System.out.println(names.get(0));
-		String[][] optionsCAS = ApiCaller.ApiCaller1("http://localhost:8080/db1/GetRowData?table="+ code);
+		String[][] optionsCAS = ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db1/GetRowData?table="+ code);
 		
-		String val = ApiCaller.ApiCaller2("http://localhost:8080/db1/UpdateData?table="+ code +"&where=id=" + 1 + "&Amount=" + Double.toString((double)(Double.parseDouble(optionsCAS[1][2]) + cost)));
+		String val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db1/UpdateData?table="+ code +"&where=id=" + 1 + "&Amount=" + Double.toString((double)(Double.parseDouble(optionsCAS[1][2]) + cost)));
 
 		for (int i = 0; i < names.size(); i++) {
-			String[][] member1 = ApiCaller.ApiCaller1("http://localhost:8080/db6/GetRowData?table="+ code +"&Member1="+uname +"&Member2="+names.get(i));
-			String[][] member2 = ApiCaller.ApiCaller1("http://localhost:8080/db6/GetRowData?table="+ code +"&Member2="+uname +"&Member1="+names.get(i));
+			String[][] member1 = ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db6/GetRowData?table="+ code +"&Member1="+uname +"&Member2="+names.get(i));
+			String[][] member2 = ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db6/GetRowData?table="+ code +"&Member2="+uname +"&Member1="+names.get(i));
 			if (member1.length != 0) {
 				System.out.print((Double.parseDouble(member1[1][2]) + amounts.get(i)));
 				System.out.println("!");
-				val = ApiCaller.ApiCaller2("http://localhost:8080/db6/UpdateData?table="+ code +"&where=Member1=%27" + uname + "%27%20And%20Member2=%27" + names.get(i) + "%27&Amount=" + (Double.parseDouble(member1[1][2]) + amounts.get(i)));
+				val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db6/UpdateData?table="+ code +"&where=Member1=%27" + uname + "%27%20And%20Member2=%27" + names.get(i) + "%27&Amount=" + (Double.parseDouble(member1[1][2]) + amounts.get(i)));
 			}
 			if (member2.length != 0) {
 				System.out.println((Double.parseDouble(member2[1][2]) + amounts.get(i)));
-				val = ApiCaller.ApiCaller2("http://localhost:8080/db6/UpdateData?table="+ code +"&where=Member2=%27" + uname + "%27%20And%20Member1=%27" + names.get(i) + "%27&Amount=" + (Double.parseDouble(member2[1][2]) - amounts.get(i)));
+				val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db6/UpdateData?table="+ code +"&where=Member2=%27" + uname + "%27%20And%20Member1=%27" + names.get(i) + "%27&Amount=" + (Double.parseDouble(member2[1][2]) - amounts.get(i)));
 			}
 
 		}
 		
 		for (int i = 2; i < optionsCAS.length; i++) {
-			val = ApiCaller.ApiCaller2("http://localhost:8080/db1/UpdateData?table="+ code +"&where=Name=%27" + names.get(i-2) + "%27&Amount=" + Double.toString((double)(Double.parseDouble(optionsCAS[i][2]) + amounts.get(i-2))));
+			val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db1/UpdateData?table="+ code +"&where=Name=%27" + names.get(i-2) + "%27&Amount=" + Double.toString((double)(Double.parseDouble(optionsCAS[i][2]) + amounts.get(i-2))));
 		}
 		
 		String transaction = "(%27"+uname+"%27,%27"+tID+"%27,";
@@ -625,7 +625,7 @@ public class AddTransaction implements ActionListener {
 
 		transaction = 	transaction.substring(0, transaction.length() - 1) + ")";
 		System.out.println(transaction);
-		String val1 = ApiCaller.ApiCaller2("http://localhost:8080/db8/InsertData?table="+ code +"&params=(Creator,tID," + String.join(",", names) + ")&info=" + transaction);
+		String val1 = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db8/InsertData?table="+ code +"&params=(Creator,tID," + String.join(",", names) + ")&info=" + transaction);
 				
 	}
 	
@@ -657,24 +657,24 @@ public class AddTransaction implements ActionListener {
 	 */
 	public void UpdatePAByPercentages(double cost, ArrayList<Double> percentages, ArrayList<String> names) {
 		
-		String[][] optionsCAS = ApiCaller.ApiCaller1("http://localhost:8080/db1/GetRowData?table="+ code);
+		String[][] optionsCAS = ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db1/GetRowData?table="+ code);
 		
-		String val = ApiCaller.ApiCaller2("http://localhost:8080/db1/UpdateData?table="+ code +"&where=id=" + 1 + "&Amount=" + Double.toString((double)(Double.parseDouble(optionsCAS[1][2]) + cost)));
+		String val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db1/UpdateData?table="+ code +"&where=id=" + 1 + "&Amount=" + Double.toString((double)(Double.parseDouble(optionsCAS[1][2]) + cost)));
 
 		for (int i = 0; i < names.size(); i++) {
-			String[][] member1 = ApiCaller.ApiCaller1("http://localhost:8080/db6/GetRowData?table="+ code +"&Member1="+uname +"&Member2="+names.get(i));
-			String[][] member2 = ApiCaller.ApiCaller1("http://localhost:8080/db6/GetRowData?table="+ code +"&Member2="+uname +"&Member1="+names.get(i));
+			String[][] member1 = ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db6/GetRowData?table="+ code +"&Member1="+uname +"&Member2="+names.get(i));
+			String[][] member2 = ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db6/GetRowData?table="+ code +"&Member2="+uname +"&Member1="+names.get(i));
 			if (member1.length != 0) {
-				val = ApiCaller.ApiCaller2("http://localhost:8080/db6/UpdateData?table="+ code +"&where=Member1=%27" + uname + "%27%20And%20Member2=%27" + names.get(i) + "%27&Amount=" + (Double.parseDouble(member1[1][2]) + (cost*percentages.get(i))/100.00));
+				val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db6/UpdateData?table="+ code +"&where=Member1=%27" + uname + "%27%20And%20Member2=%27" + names.get(i) + "%27&Amount=" + (Double.parseDouble(member1[1][2]) + (cost*percentages.get(i))/100.00));
 			}
 			if (member2.length != 0) {
-				val = ApiCaller.ApiCaller2("http://localhost:8080/db6/UpdateData?table="+ code +"&where=Member2=%27" + uname + "%27%20And%20Member1=%27" + names.get(i) + "%27&Amount=" + (Double.parseDouble(member2[1][2]) + (cost*percentages.get(i))/100.00));
+				val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db6/UpdateData?table="+ code +"&where=Member2=%27" + uname + "%27%20And%20Member1=%27" + names.get(i) + "%27&Amount=" + (Double.parseDouble(member2[1][2]) + (cost*percentages.get(i))/100.00));
 			}
 
 		}
 		
 		for (int i = 2; i < optionsCAS.length; i++) {
-			val = ApiCaller.ApiCaller2("http://localhost:8080/db1/UpdateData?table="+ code +"&where=Name=%27" + names.get(i-2) + "%27&Amount=" + Double.toString((double)(Double.parseDouble(optionsCAS[i][2]) + (percentages.get(i-2) * cost / 100))));
+			val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db1/UpdateData?table="+ code +"&where=Name=%27" + names.get(i-2) + "%27&Amount=" + Double.toString((double)(Double.parseDouble(optionsCAS[i][2]) + (percentages.get(i-2) * cost / 100))));
 		}
 		
 		String transaction = "(%27"+uname+"%27,%27"+tID+"%27,";
@@ -692,7 +692,7 @@ public class AddTransaction implements ActionListener {
 
 		transaction = 	transaction.substring(0, transaction.length() - 1) + ")";
 		System.out.println(transaction);
-		String val1 = ApiCaller.ApiCaller2("http://localhost:8080/db8/InsertData?table="+ code +"&params=(Creator,tID," + String.join(",", names) + ")&info=" + transaction);
+		String val1 = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db8/InsertData?table="+ code +"&params=(Creator,tID," + String.join(",", names) + ")&info=" + transaction);
 		
 	}
 	

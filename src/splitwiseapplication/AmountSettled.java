@@ -290,28 +290,28 @@ public class AmountSettled implements ActionListener{
 	 */
 	public void Finish(String amount, String[] SII) {
 	
-		ArrayList<String> usedCodes = new ArrayList<>(Arrays.asList(ApiCaller.ApiCaller3("http://localhost:8080/db8/GetSpecificData?val=tID&table=" + gcode)));
+		ArrayList<String> usedCodes = new ArrayList<>(Arrays.asList(ApiCaller.ApiCaller3("https://splitwise.up.railway.app/db8/GetSpecificData?val=tID&table=" + gcode)));
 		tID = createCode(usedCodes);
 		if(SII[1].equals(uname)) {
 			System.out.println("HI");
 			if (type == 0) {
-				String val = ApiCaller.ApiCaller2("http://localhost:8080/db6/UpdateData?table="+ gcode +"&where=Member1='" + uname + "'%20AND%20Member2='"+ SII[3]+"'&Amount=" + (Double.parseDouble(SII[2]) - Double.parseDouble(amount)));
-				String value = ApiCaller.ApiCaller2("http://localhost:8080/db5/InsertData?table="+ gcode +"&params=(payee,amount,reason,Ttype,tid)&info=('" + SII[3] + "'," + amount + ",'" + uname + "'," + 1 + ",'" + tID + "')");
+				String val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db6/UpdateData?table="+ gcode +"&where=Member1='" + uname + "'%20AND%20Member2='"+ SII[3]+"'&Amount=" + (Double.parseDouble(SII[2]) - Double.parseDouble(amount)));
+				String value = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db5/InsertData?table="+ gcode +"&params=(payee,amount,reason,Ttype,tid)&info=('" + SII[3] + "'," + amount + ",'" + uname + "'," + 1 + ",'" + tID + "')");
 			} else {
-				String val = ApiCaller.ApiCaller2("http://localhost:8080/db6/UpdateData?table="+ gcode +"&where=Member1='" + uname + "'%20AND%20Member2='"+ SII[3]+"'&Amount=" + (Double.parseDouble(SII[2]) + Double.parseDouble(amount)));
-				String value = ApiCaller.ApiCaller2("http://localhost:8080/db5/InsertData?table="+ gcode +"&params=(payee,amount,reason,Ttype,tid)&info=('" + uname + "'," + amount + ",'" + SII[3] + "'," + 1 + ",'" + tID + "')");
+				String val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db6/UpdateData?table="+ gcode +"&where=Member1='" + uname + "'%20AND%20Member2='"+ SII[3]+"'&Amount=" + (Double.parseDouble(SII[2]) + Double.parseDouble(amount)));
+				String value = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db5/InsertData?table="+ gcode +"&params=(payee,amount,reason,Ttype,tid)&info=('" + uname + "'," + amount + ",'" + SII[3] + "'," + 1 + ",'" + tID + "')");
 			}
 		} else {
 			if (type == 1) {
-				String val = ApiCaller.ApiCaller2("http://localhost:8080/db6/UpdateData?table="+ gcode +"&where=Member2='" + uname + "'%20AND%20Member1='"+ SII[1]+"'&Amount=" + (Double.parseDouble(SII[2]) - Double.parseDouble(amount)));
-				String value = ApiCaller.ApiCaller2("http://localhost:8080/db5/InsertData?table="+ gcode +"&params=(payee,amount,reason,Ttype,tid)&info=('" + uname + "'," + amount + ",'" + SII[1] + "'," + 1 + ",'" + tID + "')");
+				String val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db6/UpdateData?table="+ gcode +"&where=Member2='" + uname + "'%20AND%20Member1='"+ SII[1]+"'&Amount=" + (Double.parseDouble(SII[2]) - Double.parseDouble(amount)));
+				String value = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db5/InsertData?table="+ gcode +"&params=(payee,amount,reason,Ttype,tid)&info=('" + uname + "'," + amount + ",'" + SII[1] + "'," + 1 + ",'" + tID + "')");
 			} else {
-				String val = ApiCaller.ApiCaller2("http://localhost:8080/db6/UpdateData?table="+ gcode +"&where=Member2='" + uname + "'%20AND%20Member1='"+ SII[1]+"'&Amount=" + (Double.parseDouble(SII[2]) + Double.parseDouble(amount)));
-				String value = ApiCaller.ApiCaller2("http://localhost:8080/db5/InsertData?table="+ gcode +"&params=(payee,amount,reason,Ttype,tid)&info=('" + SII[1] + "'," + amount + ",'" + uname + "'," + 1 + ",'" + tID + "')");
+				String val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db6/UpdateData?table="+ gcode +"&where=Member2='" + uname + "'%20AND%20Member1='"+ SII[1]+"'&Amount=" + (Double.parseDouble(SII[2]) + Double.parseDouble(amount)));
+				String value = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db5/InsertData?table="+ gcode +"&params=(payee,amount,reason,Ttype,tid)&info=('" + SII[1] + "'," + amount + ",'" + uname + "'," + 1 + ",'" + tID + "')");
 			}
 			}
 		
-		String[][] people = ApiCaller.ApiCaller1("http://localhost:8080/db1/GetRowData?table="+ gcode);
+		String[][] people = ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db1/GetRowData?table="+ gcode);
 		String params = "&params=(Creator,tID,";
 		String info = "&info=('"+uname+"','"+tID+"',";
 		for (int i = 2; i < people.length; i++) {
@@ -345,7 +345,7 @@ public class AmountSettled implements ActionListener{
 
 		params = params.substring(0, params.length() - 1) + ")";
 		info = info.substring(0, info.length() - 1) + ")";
-		String val = ApiCaller.ApiCaller2("http://localhost:8080/db8/InsertData?table="+ gcode + params + info);
+		String val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db8/InsertData?table="+ gcode + params + info);
 		
 	}
 	

@@ -8,18 +8,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * HTTP API Client utility for communicating with the backend database server.
+ * HTTPS API Client utility for communicating with the backend database server.
  * 
  * Purpose:
- * This class provides static methods for making HTTP GET requests to a Spring Boot
- * backend server running on localhost:8080. It handles JSON response parsing and
+ * This class provides static methods for making HTTPS GET requests to a Spring Boot
+ * backend server running on splitwise.up.railway.app. It handles JSON response parsing and
  * converts the responses into Java data structures (String arrays).
  * 
  * Architecture:
- * - Uses Java 11+ HttpClient for HTTP communication
+ * - Uses Java 11+ HttpClient for HTTPS communication
  * - All methods use synchronous blocking calls
  * - Custom JSON parsing (no external JSON library dependencies)
  * - Returns different data structures based on response format
+ * - Secure HTTPS connection to Railway-hosted backend
  * 
  * Backend API structure:
  * - db1: CheckAmountSpent tables (per-group member spending totals)
@@ -39,7 +40,7 @@ import java.util.List;
 public class ApiCaller {
 
     /**
-     * Makes an HTTP GET request and parses the JSON response into a 2D String array.
+     * Makes an HTTPS GET request and parses the JSON response into a 2D String array.
      * 
      * Contract:
      * - Sends GET request to the specified URL
@@ -48,7 +49,7 @@ public class ApiCaller {
      * - Returns empty 2D array on error or empty response
      * 
      * @param url  Complete API endpoint URL with query parameters
-     *             Format: "http://localhost:8080/db{N}/{operation}?{params}"
+     *             Format: "https://splitwise.up.railway.app/db{N}/{operation}?{params}"
      * @return     2D String array where:
      *             - First dimension = rows/records
      *             - Second dimension = fields/columns within each record
@@ -233,7 +234,7 @@ public class ApiCaller {
     }
 
     /**
-     * Makes an HTTP GET request and returns the raw response body as a String.
+     * Makes an HTTPS GET request and returns the raw response body as a String.
      * 
      * Contract:
      * - Sends GET request to the specified URL
@@ -242,7 +243,7 @@ public class ApiCaller {
      * - Returns null on error
      * 
      * @param url  Complete API endpoint URL with query parameters
-     *             Format: "http://localhost:8080/db{N}/{operation}?{params}"
+     *             Format: "https://splitwise.up.railway.app/db{N}/{operation}?{params}"
      * @return     Raw response body as String, or null on error
      * 
      * Debug output:
@@ -313,7 +314,7 @@ public class ApiCaller {
      * - Returns empty array on error or empty response
      * 
      * @param url  Complete API endpoint URL with query parameters
-     *             Format: "http://localhost:8080/db{N}/GetSpecificData?val={column}&table={table}&{filters}"
+     *             Format: "http://splitwise.up.railway.app/db{N}/GetSpecificData?val={column}&table={table}&{filters}"
      * @return     1D String array containing individual field values
      *             - Empty array (String[0]) on error or no data
      * 

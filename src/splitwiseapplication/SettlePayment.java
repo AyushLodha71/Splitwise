@@ -126,10 +126,10 @@ public class SettlePayment implements ActionListener{
 		listPanel.setBorder(BorderFactory.createEmptyBorder(20,50,20,50));
 		
 		//info = RetrievePendingAmount(gcode, uname);
-		info = new ArrayList<>(Arrays.asList(ApiCaller.ApiCaller1("http://localhost:8080/db6/GetRowData?table="+ gcode + "&Member1=" + uname)));
-		info.addAll(new ArrayList<>(Arrays.asList(ApiCaller.ApiCaller1("http://localhost:8080/db6/GetRowData?table="+ gcode + "&Member2=" + uname))));
+		info = new ArrayList<>(Arrays.asList(ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db6/GetRowData?table="+ gcode + "&Member1=" + uname)));
+		info.addAll(new ArrayList<>(Arrays.asList(ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db6/GetRowData?table="+ gcode + "&Member2=" + uname))));
 
-		options = new ArrayList<>(Arrays.asList(ApiCaller.ApiCaller1("http://localhost:8080/db6/GetRowData?table="+ gcode)));
+		options = new ArrayList<>(Arrays.asList(ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db6/GetRowData?table="+ gcode)));
 
 		String[] data;
 		if (info.size() != 0) {

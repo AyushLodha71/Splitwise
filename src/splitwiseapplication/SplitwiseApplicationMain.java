@@ -16,19 +16,26 @@ package splitwiseapplication;
  * 
  * Architecture:
  * - Swing-based desktop application
- * - Communicates with Spring Boot backend via HTTP REST API (localhost:8080)
+ * - Communicates with Spring Boot backend via HTTPS REST API
+ * - Backend hosted on Railway: https://splitwise.up.railway.app
+ * - MySQL database hosted on Railway cloud platform
  * - Uses multiple GUI classes for different screens
- * - Data persistence handled by backend database
+ * - Data persistence handled by cloud-hosted backend database
+ * 
+ * Deployment:
+ * - Available as executable JAR: Splitwise.jar
+ * - Can also run from source code via IDE
+ * - No local backend setup required - connects to cloud services
  * 
  * To run the application:
- * 1. Ensure Spring Boot backend server is running on localhost:8080
- * 2. Execute this class: java splitwiseapplication.SplitwiseApplicationMain
- * 3. The login/register window will appear
+ * Option 1: Double-click Splitwise.jar
+ * Option 2: Run from terminal: java -jar Splitwise.jar
+ * Option 3: Execute this class from IDE: java splitwiseapplication.SplitwiseApplicationMain
  * 
  * Dependencies:
  * - Java 11+ (uses HttpClient)
  * - Swing (javax.swing) for GUI
- * - Backend REST API server must be running
+ * - Internet connection (to access Railway-hosted backend)
  */
 public class SplitwiseApplicationMain {
 

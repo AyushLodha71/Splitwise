@@ -58,9 +58,10 @@ public class EnterGroup implements ActionListener{
 	JPanel contentPane;
 	JComboBox options;
 	JButton backButton, groupEnter;
-	ArrayList<String> groups = new ArrayList<String>();
+	ArrayList<String[]> groups = new ArrayList<String[]>();
 	String uname;
-	String[] rcode;
+	String rcode;
+	ArrayList<String> values;
 	
 	/**
 	 * Constructor - Initialize EnterGroup GUI
@@ -98,9 +99,9 @@ public class EnterGroup implements ActionListener{
 		 
 		options = new JComboBox();
 		groups = Read(username);
-		groups.add(0, "Select Group" );
+		options.addItem("Select Group");
 		for (int i = 0; i < groups.size(); i++) {
-			options.addItem(groups.get(i));
+			options.addItem(groups.get(i)[1] + "(" +groups.get(i)[0] + ")");
 		}
 		
 		options.addActionListener(this);
@@ -133,7 +134,7 @@ public class EnterGroup implements ActionListener{
 	 * - Returns ArrayList of group names
 	 * 
 	 * DATABASE QUERY:
-	 * API: GET http://localhost:8080/db7/GetRowData?table=[username]
+	 * API: GET https://splitwise.up.railway.app/db7/GetRowData?table=[username]
 	 * Response: 2D String array where each row contains group information
 	 * Column 1 (index [i][1]): Group name
 	 * 
@@ -151,13 +152,13 @@ public class EnterGroup implements ActionListener{
 	 * @param usrname The username whose groups should be retrieved
 	 * @return ArrayList of group names the user belongs to
 	 */
-	public static ArrayList<String> Read(String usrname) {
+	public static ArrayList<String[]> Read(String usrname) {
 			
-		String[][] lst = ApiCaller.ApiCaller1("http://localhost:8080/db7/GetRowData?table="+ usrname);
-		ArrayList<String> values = new ArrayList<String>();
+		String[][] lst = ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db7/GetRowData?table="+ usrname);
+		ArrayList<String[]> values = new ArrayList<String[]>();
 			
 			for (int i = 1; i < lst.length; i++) {
-				values.add(lst[i][1]);
+				values.add(lst[i]);
 			}
 			
 			return values;
@@ -216,8 +217,11 @@ public class EnterGroup implements ActionListener{
 			frame.dispose();
 		} else if (eventName.equals("First") == true){
 			selectedItem = (String) options.getSelectedItem();
-			rcode = ApiCaller.ApiCaller3("http://localhost:8080/db3/GetSpecificData?val=group_code&table=GroupNames&group_name=" + selectedItem);
-			groupEnter = new JButton("Enter " + selectedItem + " Group");
+			int start = selectedItem.indexOf('(');
+			int end = selectedItem.indexOf(')');
+			rcode = selectedItem.substring(start + 1, end);
+			System.out.println("rcode");
+			groupEnter = new JButton("Enter " + selectedItem.substring(0,start) + " Group");
 			groupEnter.addActionListener(this);
 			groupEnter.setActionCommand("Enter");
 			contentPane.add(groupEnter);
@@ -226,10 +230,12 @@ public class EnterGroup implements ActionListener{
 			frame.pack();
 		} else if (eventName.equals("Later") == true) {
 			selectedItem = (String) options.getSelectedItem();
-			rcode = ApiCaller.ApiCaller3("http://localhost:8080/db3/GetSpecificData?val=group_code&table=GroupNames&group_name=" + selectedItem);
-			groupEnter.setText("Enter " + selectedItem + " Group");
+			int start = selectedItem.indexOf('(');
+			int end = selectedItem.indexOf(')');
+			rcode = selectedItem.substring(start + 1, end);
+			groupEnter.setText("Enter " + selectedItem.substring(0,start) + " Group");
 		} else if(eventName.equals("Enter") == true) {
-			MainPage mpage = new MainPage(uname,rcode[0]);
+			MainPage mpage = new MainPage(uname,rcode);
 			mpage.runGUI();
 			frame.dispose();
 		}

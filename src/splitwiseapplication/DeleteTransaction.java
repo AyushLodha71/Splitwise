@@ -128,7 +128,7 @@ public class DeleteTransaction implements ActionListener{
 		listPanel = new JPanel();
 		listPanel.setBorder(BorderFactory.createEmptyBorder(20,50,20,50));
 		
-		info = ApiCaller.ApiCaller1("http://localhost:8080/db5/GetRowData?table="+ gcode);
+		info = ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db5/GetRowData?table="+ gcode);
 		
 		String[] data;
 		if (info.length!= 0) {
@@ -223,8 +223,8 @@ public class DeleteTransaction implements ActionListener{
 			String[] transactionInfo = info[sIndex];
 			System.out.println(transactionInfo[0]);
 			Repay(transactionInfo);
-			String val = ApiCaller.ApiCaller2("http://localhost:8080/db5/DeleteRowData?table=" + gcode + "&tID="+transactionInfo[5]);
-			val = ApiCaller.ApiCaller2("http://localhost:8080/db8/DeleteRowData?table=" + gcode + "&tID="+transactionInfo[5]);
+			String val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db5/DeleteRowData?table=" + gcode + "&tID="+transactionInfo[5]);
+			val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db8/DeleteRowData?table=" + gcode + "&tID="+transactionInfo[5]);
 
 		}
 		
@@ -285,33 +285,33 @@ public class DeleteTransaction implements ActionListener{
 		
 		String val;
 		
-		String[][] tDetails = ApiCaller.ApiCaller1("http://localhost:8080/db8/GetRowData?table=" + gcode + "&tID=" + tInfo[5]);
+		String[][] tDetails = ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db8/GetRowData?table=" + gcode + "&tID=" + tInfo[5]);
 		String[] uids = tDetails[0];
 		String[] data = tDetails[1];
 
 		if (tInfo[4].equals("0")){
 
-			String[] amount = ApiCaller.ApiCaller3("http://localhost:8080/db1/GetSpecificData?val=Amount&table="+gcode +"&Name=Total");
+			String[] amount = ApiCaller.ApiCaller3("https://splitwise.up.railway.app/db1/GetSpecificData?val=Amount&table="+gcode +"&Name=Total");
 
-			val = ApiCaller.ApiCaller2("http://localhost:8080/db1/UpdateData?table=" + gcode + "&where=Name='Total'&Amount=" + (Double.parseDouble(amount[0]) - Double.parseDouble(tInfo[2])));
+			val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db1/UpdateData?table=" + gcode + "&where=Name='Total'&Amount=" + (Double.parseDouble(amount[0]) - Double.parseDouble(tInfo[2])));
 
 		}
 
 		for (int i = 3;  i < uids.length; i++){
-			String[] amount1 = ApiCaller.ApiCaller3("http://localhost:8080/db6/GetSpecificData?val=Amount&table="+gcode +"&Member1=" + uids[i] + "&Member2=" + data[1]);
-			String[] amount2 = ApiCaller.ApiCaller3("http://localhost:8080/db6/GetSpecificData?val=Amount&table="+gcode +"&Member2=" + uids[i] + "&Member1=" + data[1]);
+			String[] amount1 = ApiCaller.ApiCaller3("https://splitwise.up.railway.app/db6/GetSpecificData?val=Amount&table="+gcode +"&Member1=" + uids[i] + "&Member2=" + data[1]);
+			String[] amount2 = ApiCaller.ApiCaller3("https://splitwise.up.railway.app/db6/GetSpecificData?val=Amount&table="+gcode +"&Member2=" + uids[i] + "&Member1=" + data[1]);
 			if (amount1.length > 0){
-				val = ApiCaller.ApiCaller2("http://localhost:8080/db6/UpdateData?table=" + gcode + "&where=Member1='"+uids[i]+"'%20AND%20Member2='"+data[1]+"'&Amount=" + (Double.parseDouble(amount1[0]) + Double.parseDouble(data[i])));
+				val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db6/UpdateData?table=" + gcode + "&where=Member1='"+uids[i]+"'%20AND%20Member2='"+data[1]+"'&Amount=" + (Double.parseDouble(amount1[0]) + Double.parseDouble(data[i])));
 			} else if (amount2.length > 0) {
-				val = ApiCaller.ApiCaller2("http://localhost:8080/db6/UpdateData?table=" + gcode + "&where=Member1='"+data[1]+"'%20AND%20Member2='"+uids[i]+"'&Amount=" + (Double.parseDouble(amount2[0]) - Double.parseDouble(data[i])));
+				val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db6/UpdateData?table=" + gcode + "&where=Member1='"+data[1]+"'%20AND%20Member2='"+uids[i]+"'&Amount=" + (Double.parseDouble(amount2[0]) - Double.parseDouble(data[i])));
 			}
 
 			if (tInfo[4].equals("0")){
-				String[] amount = ApiCaller.ApiCaller3("http://localhost:8080/db1/GetSpecificData?val=Amount&table="+ gcode +"&Name=" + uids[i]);
+				String[] amount = ApiCaller.ApiCaller3("https://splitwise.up.railway.app/db1/GetSpecificData?val=Amount&table="+ gcode +"&Name=" + uids[i]);
 				if (uids[i].equalsIgnoreCase(data[1])){
-					val = ApiCaller.ApiCaller2("http://localhost:8080/db1/UpdateData?table=" + gcode + "&where=Name='"+uids[i]+"'&Amount=" + ((Double.parseDouble(amount[0]) - Double.parseDouble(tInfo[2]) - Double.parseDouble(data[i]))));
+					val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db1/UpdateData?table=" + gcode + "&where=Name='"+uids[i]+"'&Amount=" + ((Double.parseDouble(amount[0]) - Double.parseDouble(tInfo[2]) - Double.parseDouble(data[i]))));
 				} else {
-					val = ApiCaller.ApiCaller2("http://localhost:8080/db1/UpdateData?table=" + gcode + "&where=Name='"+uids[i]+"'&Amount=" + (Double.parseDouble(amount[0]) - Double.parseDouble(data[i])));
+					val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db1/UpdateData?table=" + gcode + "&where=Name='"+uids[i]+"'&Amount=" + (Double.parseDouble(amount[0]) - Double.parseDouble(data[i])));
 				}
 			}
 

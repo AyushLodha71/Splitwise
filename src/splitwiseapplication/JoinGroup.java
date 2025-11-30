@@ -193,7 +193,7 @@ public class JoinGroup implements ActionListener {
 		} else if ((eventName.equals("Join Group") == true)){
 			String code = joinCode.getText();
 			
-			if (Exists.exist("http://localhost:8080/db3/GetRowData?table=GroupNames&group_code=" + code) && Exists.exist("http://localhost:8080/db4/GetRowData?table="+code+"&name="+uname) == false) {
+			if (Exists.exist("https://splitwise.up.railway.app/db3/GetRowData?table=GroupNames&group_code=" + code) && Exists.exist("https://splitwise.up.railway.app/db4/GetRowData?table="+code+"&name="+uname) == false) {
 				AddNewUser(code,uname);
 				success = new JLabel("Success!");
 				enterButton = new JButton("Enter");
@@ -262,16 +262,16 @@ public class JoinGroup implements ActionListener {
 		
 		AddPerms(code);
 		
-		ApiCaller.ApiCaller1("http://localhost:8080/db4/InsertData?table="+code+"&params=(name)&info=('" + uname + "')");
+		ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db4/InsertData?table="+code+"&params=(name)&info=('" + uname + "')");
 		
-		gname = ApiCaller.ApiCaller3("http://localhost:8080/db3/GetSpecificData?val=group_name&table=GroupNames&group_code=" + code);
+		gname = ApiCaller.ApiCaller3("https://splitwise.up.railway.app/db3/GetSpecificData?val=group_name&table=GroupNames&group_code=" + code);
 		
-		ApiCaller.ApiCaller1("http://localhost:8080/db8/AddColumn?table="+code+"&uname="+usrname);
+		ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db8/AddColumn?table="+code+"&uname="+usrname);
 
-		ApiCaller.ApiCaller1("http://localhost:8080/db8/UpdateData?table="+code+"&where=1=1&"+uname+"=0");
-		ApiCaller.ApiCaller1("http://localhost:8080/db7/InsertData?table="+uname+"&params=(GroupID,GroupName)&info=('" + code + "','" + gname[0] + "')");
+		ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db8/UpdateData?table="+code+"&where=1=1&"+uname+"=0");
+		ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db7/InsertData?table="+uname+"&params=(GroupID,GroupName)&info=('" + code + "','" + gname[0] + "')");
 		
-		ApiCaller.ApiCaller1("http://localhost:8080/db1/InsertData?table="+code+"&params=(Name,Amount)&info=('" + uname + "',0)");
+		ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db1/InsertData?table="+code+"&params=(Name,Amount)&info=('" + uname + "',0)");
 		
 	}
 	
@@ -316,14 +316,14 @@ public class JoinGroup implements ActionListener {
 	 */
 	public static void AddPerms(String gcode) {
 
-		String[][] lst = ApiCaller.ApiCaller1("http://localhost:8080/db4/GetRowData?table="+ gcode);
+		String[][] lst = ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db4/GetRowData?table="+ gcode);
 		String[] values = new String[lst.length-1];
 		
 		for (int i = 1; i < lst.length; i++) {
 			values[i-1] = lst[i][1];
 		}
 		for (String i : values) {
-			ApiCaller.ApiCaller1("http://localhost:8080/db6/InsertData?table="+gcode+"&params=(Member1,Amount,Member2)&info=('" + i + "',0,'" + uname + "')");
+			ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db6/InsertData?table="+gcode+"&params=(Member1,Amount,Member2)&info=('" + i + "',0,'" + uname + "')");
 		}
 	}
 	

@@ -130,7 +130,7 @@ public class CheckAmountSpent implements ActionListener{
 		contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
 		contentPane.setBorder(BorderFactory.createEmptyBorder(20,50,20,50));
 		
-		values = new ArrayList<>(Arrays.asList(ApiCaller.ApiCaller1("http://localhost:8080/db1/GetRowData?table="+ gcode)));
+		values = new ArrayList<>(Arrays.asList(ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db1/GetRowData?table="+ gcode)));
 
         columnNames[0] = "Id";
 		columnNames[1] = "Name";

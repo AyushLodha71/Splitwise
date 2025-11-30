@@ -153,7 +153,7 @@ public class MainPage implements ActionListener{
 		listPanel = new JPanel();
 		listPanel.setBorder(BorderFactory.createEmptyBorder(20,50,20,50));
 		
-		info = ApiCaller.ApiCaller1("http://localhost:8080/db5/GetRowData?table="+ code);
+		info = ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db5/GetRowData?table="+ code);
 		
 		String[] data;
 		if (info.length!= 0) {
@@ -397,8 +397,8 @@ public class MainPage implements ActionListener{
 	 */
 	public Boolean exitEligibility() {
 		
-		String[][] records1 = ApiCaller.ApiCaller1("http://localhost:8080/db6/GetRowData?table="+ gcode+"&Member1="+uname);
-		String[][] records2 = ApiCaller.ApiCaller1("http://localhost:8080/db6/GetRowData?table="+ gcode+"&Member2="+uname);
+		String[][] records1 = ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db6/GetRowData?table="+ gcode+"&Member1="+uname);
+		String[][] records2 = ApiCaller.ApiCaller1("https://splitwise.up.railway.app/db6/GetRowData?table="+ gcode+"&Member2="+uname);
 		
 		for (int i = 1; i < records1.length; i++) {
 			String[] row = records1[i];
@@ -475,21 +475,21 @@ public class MainPage implements ActionListener{
 	 * 
 	 * NOTE:
 	 * The return value 'val' from ApiCaller2() is unused - operations are
-	 * fire-and-forget HTTP requests to the backend API.
+	 * fire-and-forget HTTPS requests to the backend API.
 	 */
 	public void DeleteRecords() {
 		
-		String val = ApiCaller.ApiCaller2("http://localhost:8080/db6/DeleteRowData?table="+ gcode+"&Member1="+uname);
-		val = ApiCaller.ApiCaller2("http://localhost:8080/db6/DeleteRowData?table="+ gcode+"&Member2="+uname);
-		String[] amountp = ApiCaller.ApiCaller3("http://localhost:8080/db1/GetSpecificData?val=Amount&table="+ gcode+"&Name="+uname);
-		String[] amountt = ApiCaller.ApiCaller3("http://localhost:8080/db1/GetSpecificData?val=Amount&table="+ gcode+"&Name=Total");
-		val = ApiCaller.ApiCaller2("http://localhost:8080/db1/UpdateData?table=" + gcode + "&where=Name='Total'&Amount="+ (Double.parseDouble(amountt[0]) - Double.parseDouble(amountp[0])));
-		val = ApiCaller.ApiCaller2("http://localhost:8080/db1/DeleteRowData?table="+ gcode+"&Name="+uname);
-		val = ApiCaller.ApiCaller2("http://localhost:8080/db1/DeleteRowData?table="+ gcode+"&Name="+uname);
-		val = ApiCaller.ApiCaller2("http://localhost:8080/db4/DeleteRowData?table="+ gcode+"&name="+uname);
-		val = ApiCaller.ApiCaller2("http://localhost:8080/db7/DeleteRowData?table="+ uname+"&GroupID="+gcode);
-		val = ApiCaller.ApiCaller2("http://localhost:8080/db5/InsertData?table="+ gcode +"&params=(payee,amount,reason,Ttype,tid)&info=('" + uname + "'," + 0 + ",'left'," + 2 + ",'NA')");
-		val = ApiCaller.ApiCaller2("http://localhost:8080/db8/DeleteColumn?table="+ gcode+"&uname="+uname);
+		String val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db6/DeleteRowData?table="+ gcode+"&Member1="+uname);
+		val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db6/DeleteRowData?table="+ gcode+"&Member2="+uname);
+		String[] amountp = ApiCaller.ApiCaller3("https://splitwise.up.railway.app/db1/GetSpecificData?val=Amount&table="+ gcode+"&Name="+uname);
+		String[] amountt = ApiCaller.ApiCaller3("https://splitwise.up.railway.app/db1/GetSpecificData?val=Amount&table="+ gcode+"&Name=Total");
+		val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db1/UpdateData?table=" + gcode + "&where=Name='Total'&Amount="+ (Double.parseDouble(amountt[0]) - Double.parseDouble(amountp[0])));
+		val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db1/DeleteRowData?table="+ gcode+"&Name="+uname);
+		val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db1/DeleteRowData?table="+ gcode+"&Name="+uname);
+		val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db4/DeleteRowData?table="+ gcode+"&name="+uname);
+		val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db7/DeleteRowData?table="+ uname+"&GroupID="+gcode);
+		val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db5/InsertData?table="+ gcode +"&params=(payee,amount,reason,Ttype,tid)&info=('" + uname + "'," + 0 + ",'left'," + 2 + ",'NA')");
+		val = ApiCaller.ApiCaller2("https://splitwise.up.railway.app/db8/DeleteColumn?table="+ gcode+"&uname="+uname);
 		
 	}
 	

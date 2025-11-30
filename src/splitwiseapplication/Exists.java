@@ -29,7 +29,7 @@ public class Exists {
 	 * - Returns false if the API returns an empty result set
 	 * 
 	 * @param url  Complete API endpoint URL with query parameters
-	 *             Format: "http://localhost:8080/db{N}/GetRowData?table={table_name}&{filters}"
+	 *             Format: "https://splitwise.up.railway.app/db{N}/GetRowData?table={table_name}&{filters}"
 	 * @return     true if data exists (rows.length > 0), false otherwise
 	 * 
 	 * Implementation details:
@@ -53,7 +53,7 @@ public class Exists {
 	 * 
 	 * Example usage:
 	 * boolean userExists = Exists.exist(
-	 *     "http://localhost:8080/db2/GetRowData?table=Credentials&username=" + username
+	 *     "https://splitwise.up.railway.app/db2/GetRowData?table=Credentials&username=" + username
 	 * );
 	 */
 	public static Boolean exist(String url) {
@@ -61,8 +61,7 @@ public class Exists {
 		String[][] rows = ApiCaller.ApiCaller1(url);
 
         int numlength = rows.length;
-		System.out.println(numlength);
-		if ( numlength > 0) {
+		if (numlength > 0) {
 			return true;
 		} else {
 			return false;
